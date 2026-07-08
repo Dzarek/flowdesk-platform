@@ -1,4 +1,4 @@
-import { userService } from "@/src/services/user.service";
+import { userService } from "@/services/user.service";
 
 export default async function UsersPage() {
   const users = await userService.getUsers();
