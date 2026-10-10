@@ -3,13 +3,13 @@ import Link from "next/link";
 
 const NavMain = () => {
   return (
-    <ul className="p-2 flex-1 flex flex-col gap-2 my-10 text-white font-medium tracking-wider">
+    <ul className="px-2 flex-1 flex flex-col gap-1 my-7 text-white tracking-wider">
       {mainNavigation.map((item) => {
         return (
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-center gap-4 p-4 py-3 hover:bg-green-800 duration-300 rounded-xl"
+            className="flex items-center gap-4 p-4 py-2.5 hover:bg-emerald-900 duration-300 rounded-lg"
           >
             {<item.icon />}
             <span className="text-base"> {item.title}</span>

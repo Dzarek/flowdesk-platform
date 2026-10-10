@@ -1,7 +1,7 @@
-import { LucideIcon } from "lucide-react";
+import { IconType } from "react-icons/lib";
 
 export interface NavigationItem {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: IconType;
 }

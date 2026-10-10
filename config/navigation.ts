@@ -1,43 +1,68 @@
 import { NavigationItem } from "@/types/navigation";
 import {
-  LayoutDashboard,
-  CalendarDays,
-  Users,
-  BedDouble,
-  SquareCheck,
-  Settings,
-} from "lucide-react";
+  RiDashboardHorizontalFill,
+  RiLightbulbFlashFill,
+  RiSettings4Fill,
+} from "react-icons/ri";
+import { MdFamilyRestroom } from "react-icons/md";
+import { FaCalendarAlt, FaTasks, FaShoppingCart } from "react-icons/fa";
+import { ImTable } from "react-icons/im";
+import { FaUserDoctor, FaEarthAmericas, FaHouse } from "react-icons/fa6";
 
 export const mainNavigation: NavigationItem[] = [
   {
     title: "Dashboard",
     href: "/dashboard",
-    icon: LayoutDashboard,
+    icon: RiDashboardHorizontalFill,
   },
   {
-    title: "Reservations",
-    href: "/dashboard/reservations",
-    icon: CalendarDays,
+    title: "Rodzina",
+    href: "/dashboard/rodzina",
+    icon: MdFamilyRestroom,
   },
   {
-    title: "Guests",
-    href: "/dashboard/guests",
-    icon: Users,
+    title: "Kalendarz",
+    href: "/dashboard/kalendarz",
+    icon: FaCalendarAlt,
   },
   {
-    title: "Rooms",
-    href: "/dashboard/rooms",
-    icon: BedDouble,
+    title: "Zadania",
+    href: "/dashboard/zadania",
+    icon: FaTasks,
   },
   {
-    title: "Tasks",
-    href: "/dashboard/tasks",
-    icon: SquareCheck,
+    title: "Zakupy",
+    href: "/dashboard/zakupy",
+    icon: FaShoppingCart,
   },
-
   {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
+    title: "Harmonogram",
+    href: "/dashboard/harmonogram",
+    icon: ImTable,
+  },
+  {
+    title: "Zdrowie",
+    href: "/dashboard/zdrowie",
+    icon: FaUserDoctor,
+  },
+  {
+    title: "Dom",
+    href: "/dashboard/dom",
+    icon: FaHouse,
+  },
+  {
+    title: "Energia",
+    href: "/dashboard/energia",
+    icon: RiLightbulbFlashFill,
+  },
+  {
+    title: "Podróże",
+    href: "/dashboard/podroze",
+    icon: FaEarthAmericas,
+  },
+  {
+    title: "Ustawienia",
+    href: "/dashboard/ustawienia",
+    icon: RiSettings4Fill,
   },
 ];

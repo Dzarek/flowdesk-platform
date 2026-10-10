@@ -1,6 +1,7 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { FaMoon, FaSun } from "react-icons/fa";
+
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
@@ -18,9 +19,9 @@ const ThemeToggle = () => {
       onClick={toggleTheme}
     >
       {resolvedTheme === "dark" ? (
-        <Sun className="mr-2 h-4 w-4" />
+        <FaSun className="mr-2 h-4 w-4" />
       ) : (
-        <Moon className="mr-2 h-4 w-4" />
+        <FaMoon className="mr-2 h-4 w-4" />
       )}
       {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
     </Button>
