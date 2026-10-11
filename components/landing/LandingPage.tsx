@@ -24,9 +24,9 @@ export default function LandingPage() {
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.3]"
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.5]"
         >
-          <source src="/videos/videoBg2.mp4" type="video/mp4" />
+          <source src="/videos/videoBg4.webm" type="video/webm" />
         </video>
 
         <div className="absolute inset-0 bg-gradient-to-br from-[#E8E2D5]/90 via-[#E8E2D5]/10 to-[#D9C6A6]/90 " />
@@ -47,7 +47,7 @@ export default function LandingPage() {
       <div className="relative z-10 mx-auto grid min-h-screen w-full lg:grid-cols-[1.15fr_0.85fr]">
         {/* LEWA STRONA */}
 
-        <section className="flex flex-col justify-center pr-6 pl-6 py-12 sm:pr-10 sm:pl-10 xl:pr-20 xl:pl-[7vw]">
+        <section className="flex flex-col justify-center pr-6 pl-6 py-8 sm:pr-10 sm:pl-[5vw] xl:pr-20 [1600px]:pl-[7vw]">
           {/* Logo */}
 
           <Link href="/" className="group flex w-fit items-center gap-3">
@@ -56,20 +56,20 @@ export default function LandingPage() {
 
           {/* Nagłówek */}
 
-          <div className="mt-10 lg:mt-10">
+          <div className="mt-10 lg:mt-6 [1600px]:mt-10">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#244C3B]/15 bg-white/50 px-4 py-2 text-xs font-semibold text-[#42634D] backdrop-blur">
               <FaLeaf size={15} />
               <span>Więcej harmonii na co dzień</span>
             </div>
 
-            <h1 className="text-4xl font-semibold leading-[1.12] tracking-tight text-[#29372E] sm:text-5xl xl:text-6xl">
+            <h1 className="text-4xl font-semibold leading-[1.12] tracking-tight text-[#29372E] sm:text-5xl [1600px]:text-6xl">
               Wszystko, co ważne.
               <span className="mt-2 block font-serif font-medium italic text-[#56775D]">
                 W jednym miejscu.
               </span>
             </h1>
 
-            <p className="mt-7 ml-2 text-base leading-8 text-[#53554d] sm:text-lg">
+            <p className="mt-4 [1600px]:mt-7 ml-2 text-base leading-8 text-[#53554d] font-medium [1600px]:text-lg">
               Rodzina, codzienne obowiązki, wspólne plany i Twój dom. Life Hub
               pomaga Ci uporządkować codzienność, żeby mieć więcej czasu na to,
               co naprawdę się liczy.
@@ -82,7 +82,7 @@ export default function LandingPage() {
 
           {/* KORZYŚCI */}
 
-          <div className="mt-10 grid gap-y-3 pr-14 gap-x-3 sm:grid-cols-2">
+          <div className="mt-4 [1600px]:mt-10 grid gap-y-3 pr-14 gap-x-3 sm:grid-cols-2">
             <Feature
               icon={FiCalendar}
               title="Wspólny kalendarz"
@@ -110,7 +110,7 @@ export default function LandingPage() {
 
           {/* DODATKOWY AKCENT */}
 
-          <div className="mt-10 flex items-center gap-3 text-sm text-[#827C6F]">
+          <div className="hidden [1600px]:flex items-center gap-3 text-sm text-[#827C6F]">
             <div className="flex -space-x-2">
               <div className="flex size-8 items-center justify-center rounded-full border-2 border-[#F5F0E7] bg-[#D7B978]">
                 <FiUsers size={14} className="text-[#453F34]" />
@@ -132,7 +132,7 @@ export default function LandingPage() {
 
         <section
           id="logowanie"
-          className="relative flex items-center justify-center px-5 py-12 sm:px-10 lg:px-12 lg:py-16"
+          className="relative flex items-center justify-center px-5 py-10 sm:px-10 lg:px-12 [1600px]:py-16"
         >
           {/* Dekoracyjne tło panelu */}
 
@@ -140,22 +140,22 @@ export default function LandingPage() {
 
           <div className="relative w-full max-w-md">
             <div className="mb-8 text-center">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#524d43]">
+              {/* <p className="text-base font-semibold uppercase tracking-[0.2em] text-[#524d43]">
                 Twoja domowa przestrzeń
-              </p>
+              </p> */}
 
-              <h2 className="mt-3 text-3xl font-medium text-[#244C3B]">
+              <h2 className="mt-3 uppercase text-lg tracking-[0.2em] [1600px]:text-3xl font-semibold text-[#524d43]">
                 Dobrze, że jesteś.
               </h2>
 
-              <p className="mt-2 text-sm leading-6 text-[#524d43]">
+              {/* <p className="hidden [1600px]:block mt-2 text-sm leading-6 text-[#524d43]">
                 Zaloguj się i wróć do swoich codziennych spraw.
-              </p>
+              </p> */}
             </div>
-
-            <AuthForm />
-
-            <p className="mt-6 text-center text-sm text-[#524d43]">
+            <div className="w-[400px] mx-auto [1600px]:w-auto">
+              <AuthForm />
+            </div>
+            <p className="hidden [1600px]:block mt-6 text-center text-sm text-[#524d43]">
               Twoja rodzina. Wasze plany. Wasz dom.
             </p>
           </div>
@@ -195,7 +195,7 @@ type FeatureProps = {
 
 function Feature({ icon: Icon, title, description }: FeatureProps) {
   return (
-    <div className="group relative isolate overflow-hidden rounded-[24px] border border-[#244C3B]/8 bg-[#FFFEFA]/65 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#244C3B]/15 hover:bg-[#FFFEFA] hover:shadow-[0_16px_40px_-24px_rgba(36,76,59,0.3)]">
+    <div className="group relative isolate overflow-hidden rounded-[24px] border border-[#244C3B]/8 bg-[#FFFEFA]/65 p-4 [1600px]:p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#244C3B]/15 hover:bg-[#FFFEFA] hover:shadow-[0_16px_40px_-24px_rgba(36,76,59,0.3)]">
       {/* Organiczny akcent w tle */}
       <div className="pointer-events-none absolute -right-8 -top-8 -z-10 size-28 rounded-full bg-[#DCE7D9]/70 transition-transform duration-500 group-hover:scale-125" />
 
@@ -214,12 +214,14 @@ function Feature({ icon: Icon, title, description }: FeatureProps) {
         </div>
       </div>
 
-      <div className="mt-2">
-        <h3 className="text-base font-semibold tracking-tight text-[#29372E] sm:text-lg">
+      <div className="[1600px]:mt-2">
+        <h3 className="text-base font-semibold tracking-tight text-[#29372E] [1600px]:text-lg">
           {title}
         </h3>
 
-        <p className="mt-1 text-sm leading-6 text-[#77766C]">{description}</p>
+        <p className="mt-1 text-xs [1600px]:text-sm leading-6 text-[#77766C]">
+          {description}
+        </p>
       </div>
     </div>
   );
