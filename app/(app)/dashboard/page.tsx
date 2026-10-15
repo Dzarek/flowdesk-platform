@@ -1,5 +1,8 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { prisma } from "@/lib/prisma";
+
+import WeatherWidgetContainer from "@/components/dashboard/weather/WeatherWidgetContainer";
 
 import CalendarWidget from "@/components/dashboard/CalendarWidget";
 import DashboardHero from "@/components/dashboard/DashboardHero";
@@ -15,27 +18,6 @@ import {
   MdOutlineShoppingCart,
   MdOutlineSolarPower,
 } from "react-icons/md";
-
-export const welcomeData = {
-  user: {
-    firstName: "Jarek",
-  },
-
-  weather: {
-    temperature: 24,
-    icon: "sun",
-  },
-
-  summary: {
-    events: 2,
-    tasks: 5,
-    shopping: 8,
-  },
-
-  ai: {
-    text: "Dzisiaj nie masz zaplanowanych wydarzeń. To dobry moment, aby dokończyć zaległe zadania.",
-  },
-};
 
 export const calendarEvents = [
   {
@@ -200,6 +182,36 @@ export const energyData = {
   ],
 };
 
+function buildAiSummary() {
+  const eventsCount = calendarEvents.length;
+  const pendingTasks = tasks.filter((task) => !task.completed).length;
+  const pendingShopping = shoppingItems.filter(
+    (item) => !item.purchased,
+  ).length;
+
+  if (pendingTasks === 0 && eventsCount === 0) {
+    return "Masz spokojny dzień. Wszystkie zadania są wykonane i nie masz zaplanowanych wydarzeń.";
+  }
+
+  if (pendingTasks > 0 && eventsCount > 0) {
+    return `Dzisiaj masz ${eventsCount} zaplanowane wydarzenia i ${pendingTasks} niewykonanych zadań. Warto sprawdzić plan dnia i ustalić priorytety.${
+      pendingShopping > 0
+        ? ` Na liście zakupów czeka jeszcze ${pendingShopping} produktów.`
+        : ""
+    }`;
+  }
+
+  if (pendingTasks > 0) {
+    return `Masz ${pendingTasks} niewykonanych zadań. Warto zająć się najważniejszymi z nich.${
+      pendingShopping > 0
+        ? ` Do kupienia pozostaje ${pendingShopping} produktów.`
+        : ""
+    }`;
+  }
+
+  return `Na dzisiaj masz zaplanowane ${eventsCount} wydarzenia. Sprawdź kalendarz, żeby niczego nie przegapić.`;
+}
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
@@ -207,9 +219,36 @@ export default async function DashboardPage() {
     return null;
   }
 
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      name: true,
+    },
+  });
+
+  const firstName =
+    user?.name?.trim().split(/\s+/)[0] ||
+    session.user.name?.trim().split(/\s+/)[0] ||
+    "użytkowniku";
+
+  const welcomeData = {
+    user: {
+      firstName,
+    },
+    ai: {
+      text: buildAiSummary(),
+    },
+  };
+
   return (
     <div>
-      <DashboardHero data={welcomeData} />
+      <div className="mb-4 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 w-full">
+        <DashboardHero data={welcomeData} />
+        <WeatherWidgetContainer />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardStatCard
           title="Wydarzenia dzisiaj"
