@@ -36,31 +36,6 @@ export default function AppLayoutClient({
 
   return (
     <div className="min-h-screen relative w-full overflow-x-hidden bg-[var(--greenBg)] text-[#191C1A] p-4">
-      {/* TŁO */}
-
-      {/* <div className="pointer-events-none fixed inset-0 -z-10">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.5]"
-        >
-          <source src="/videos/videoBg4.webm" type="video/webm" />
-        </video>
-
-        <div className="absolute inset-0 bg-gradient-to-br from-[#E8E2D5]/90 via-[#E8E2D5]/10 to-[#D9C6A6]/90 " />
-
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#78917A]/20 blur-[120px]" />
-
-        <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#C47B5A]/15 blur-[120px]" />
-
-
-        <div className="absolute right-[8%] top-[12%] h-40 w-40 rounded-full border border-[#244C3B]/10 lg:h-64 lg:w-64" />
-
-        <div className="absolute right-[11%] top-[16%] h-32 w-32 rounded-full border border-[#244C3B]/10 lg:h-52 lg:w-52" />
-      </div> */}
-
       {/* =====================================================
           SIDEBAR
       ====================================================== */}
@@ -89,8 +64,24 @@ export default function AppLayoutClient({
           onMobileMenuOpen={() => setIsMobileSidebarOpen(true)}
         />
 
-        <main className="min-h-screen py-16 lg:pt-10 w-full px-10 bg-[#F7F8F7] rounded-2xl">
-          {children}
+        <main className="relative min-h-screen py-16 lg:pt-10 w-full px-10 bg-[#F7F8F7] rounded-2xl overflow-hidden">
+          {/* <div className="absolute inset-0 bg-gradient-to-br from-[#E8E2D5]/90 via-[#E8E2D5]/10 to-[#D9C6A6]/90 " />
+
+          <div className="absolute  h-[500px] w-[500px] rounded-full bg-[#78917A]/20 blur-[120px]" />
+
+          <div className="absolute  h-[500px] w-[500px] rounded-full bg-[#C47B5A]/15 blur-[120px]" /> */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.5]"
+          >
+            <source src="/videos/videoBg4.webm" type="video/webm" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#244C3B]/20 via-[#E8E2D5]/60 to-[#244C3B]/60 " />
+
+          <div className="z-10 relative">{children}</div>
         </main>
       </div>
       {/* =====================================================

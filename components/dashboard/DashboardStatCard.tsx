@@ -36,7 +36,7 @@ const DashboardStatCard = ({
         flex
         min-h-36
         gap-4
-        rounded-2xl
+        rounded-4xl
         border
         border-border
         bg-card

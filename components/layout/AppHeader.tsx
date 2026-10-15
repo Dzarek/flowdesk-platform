@@ -149,7 +149,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
           {/* Menu */}
 
           {isUserMenuOpen && (
-            <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-black/20">
+            <div className="absolute z-20 right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-black/20">
               <Link
                 href="/konto"
                 className="flex w-full cursor-pointer

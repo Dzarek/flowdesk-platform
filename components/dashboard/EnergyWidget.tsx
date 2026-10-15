@@ -33,7 +33,7 @@ const EnergyWidget = ({
         flex
         h-full
         flex-col
-        rounded-2xl
+        rounded-4xl
         border
         border-border
         bg-card

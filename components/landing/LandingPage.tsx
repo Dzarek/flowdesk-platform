@@ -35,8 +35,6 @@ export default function LandingPage() {
 
         <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#C47B5A]/15 blur-[120px]" />
 
-        {/* Delikatna dekoracja */}
-
         <div className="absolute right-[8%] top-[12%] h-40 w-40 rounded-full border border-[#244C3B]/10 lg:h-64 lg:w-64" />
 
         <div className="absolute right-[11%] top-[16%] h-32 w-32 rounded-full border border-[#244C3B]/10 lg:h-52 lg:w-52" />

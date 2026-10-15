@@ -23,7 +23,7 @@ export default function CalendarWidget({ events }: CalendarWidgetProps) {
         flex
         h-full
         flex-col
-        rounded-3xl
+        rounded-4xl
         border
         border-border
         bg-card

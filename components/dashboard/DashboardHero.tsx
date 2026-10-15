@@ -59,12 +59,10 @@ export default function DashboardHero({ data }: DashboardHeroProps) {
       <section className="px-4 py-2">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Dzień dobry, {data.user.firstName} !👋
+            <h1 className="text-2xl text-[var(--greenText)] font-semibold tracking-tight">
+              Dzień dobry, {data.user.firstName} !{" "}
+              <span className="mr-2">👋</span>
             </h1>
-            <p className="text-gray-500 mt-1 text-base">
-              Oto co dzieje się dzisiaj.
-            </p>
           </div>
 
           <div className="flex items-center gap-2 rounded-full bg-muted px-4 py-2">
@@ -75,9 +73,9 @@ export default function DashboardHero({ data }: DashboardHeroProps) {
           </div>
         </div>
       </section>
-      <div className="rounded-3xl border border-border bg-card py-4 px-8 shadow-sm mb-4">
+      <div className="rounded-4xl border text-[var(--greenText)] border-border bg-card py-4 px-8 shadow-sm mb-4">
         <div className="mb-3 flex items-center gap-2 text-lg font-semibold">
-          <MdOutlineAutoAwesome className="text-xl text-primary" />
+          <MdOutlineAutoAwesome className="text-2xl" />
           Podsumowanie AI
         </div>
 
