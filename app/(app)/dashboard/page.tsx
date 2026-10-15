@@ -1,3 +1,6 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+
 import CalendarWidget from "@/components/dashboard/CalendarWidget";
 import DashboardHero from "@/components/dashboard/DashboardHero";
 import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
@@ -197,7 +200,13 @@ export const energyData = {
   ],
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return null;
+  }
+
   return (
     <div>
       <DashboardHero data={welcomeData} />

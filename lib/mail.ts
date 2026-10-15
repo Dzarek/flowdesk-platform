@@ -22,14 +22,14 @@ export async function sendPasswordResetEmail({
   resetUrl,
 }: SendPasswordResetEmailProps) {
   await transporter.sendMail({
-    from: `"BankoŁowca" <${process.env.SMTP_USER}>`,
+    from: `"LifeHub" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: "Resetowanie hasła — BankoŁowca",
+    subject: "Resetowanie hasła — LifeHub",
 
     text: `
 Cześć ${name},
 
-otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta BankoŁowca.
+otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta LifeHub.
 
 Aby ustawić nowe hasło, otwórz poniższy link:
 
@@ -39,8 +39,8 @@ Link jest ważny przez 30 minut i może zostać wykorzystany tylko raz.
 
 Jeśli nie prosiłeś o zmianę hasła, możesz zignorować tę wiadomość.
 
-Pozdrawiamy
-BankoŁowca
+Pozdrawiamy,
+LifeHub
 `,
 
     html: `
@@ -80,7 +80,7 @@ BankoŁowca
             color: #071b33;
           "
         >
-          Banko<span style="color: #d39b27;">Łowca</span>
+          Life<span style="color: #d39b27;">Hub</span>
         </h1>
       </div>
 
@@ -114,7 +114,7 @@ BankoŁowca
         "
       >
         Otrzymaliśmy prośbę o zresetowanie hasła do Twojego
-        konta BankoŁowca.
+        konta LifeHub.
       </p>
 
       <div style="text-align: center; margin: 30px 0;">
@@ -174,8 +174,7 @@ BankoŁowca
             color: #94a3b8;
           "
         >
-          BankoŁowca — Poluj na premie. Pilnuj warunków.
-          Zgarniaj nagrody.
+          LifeHub
         </p>
       </div>
     </div>

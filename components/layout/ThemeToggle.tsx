@@ -14,16 +14,17 @@ const ThemeToggle = () => {
 
   return (
     <Button
-      variant="ghost"
-      className="justify-start text-white text-lg px-4"
+      className="flex justify-start items-center gap-3 rounded-lg
+                      px-4 py-2 cursor-pointer text-sm font-medium
+                      transition-colors text-slate-300 bg-transparent hover:bg-white/10 hover:text-white w-full"
       onClick={toggleTheme}
     >
       {resolvedTheme === "dark" ? (
-        <FaSun className="mr-2 h-4 w-4" />
+        <FaSun className="mr-2 h-2 w-2" />
       ) : (
-        <FaMoon className="mr-2 h-4 w-4" />
+        <FaMoon className="mr-2 h-2 w-2" />
       )}
-      {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+      {resolvedTheme === "dark" ? "Jasny Motyw" : "Ciemny Motyw"}
     </Button>
   );
 };

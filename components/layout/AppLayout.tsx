@@ -1,7 +1,5 @@
 import { ReactNode } from "react";
-
 import AppLayoutClient from "./AppLayoutClient";
-
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
@@ -31,36 +29,6 @@ export default async function AppLayout({ children }: AppLayoutProps) {
   if (!user) {
     redirect("/");
   }
-
-  // const userPromotions = await prisma.userPromotion.findMany({
-  //   where: {
-  //     userId: session.user.id,
-  //     status: "AKTYWNA",
-  //   },
-
-  //   include: {
-  //     promotion: {
-  //       include: {
-  //         bank: true,
-  //       },
-  //     },
-  //   },
-
-  //   orderBy: {
-  //     joinedAt: "desc",
-  //   },
-  // });
-
-  // const activePromotions = userPromotions.map((userPromotion) => ({
-  //   id: userPromotion.promotion.id,
-  //   name: userPromotion.promotion.name,
-
-  //   bank: {
-  //     id: userPromotion.promotion.bank.id,
-  //     name: userPromotion.promotion.bank.name,
-  //     color: userPromotion.promotion.bank.color,
-  //   },
-  // }));
 
   return (
     <AppLayoutClient

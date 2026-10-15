@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { FaArrowRight, FaUser, FaUserPlus, FaDoorOpen } from "react-icons/fa";
+import { FaArrowRight, FaUser } from "react-icons/fa";
 import { BsFillShieldLockFill, BsShieldFillExclamation } from "react-icons/bs";
 import { LuLoaderCircle } from "react-icons/lu";
 

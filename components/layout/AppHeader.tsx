@@ -67,7 +67,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
   };
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-30 flex h-16 items-center justify-between bg-zinc-900 px-4 text-white lg:left-[260px] lg:h-20 lg:px-0 lg:pr-8 lg:pl-2">
+    <header className="mb-2 rounded-2xl flex h-16 items-center justify-between bg-[#F7F8F7] px-4 text-[#191C1A] lg:left-[276px] lg:h-18 lg:px-0 lg:pr-8 lg:pl-2">
       {" "}
       {/* Lewa strona */}
       <div className="flex min-w-0 items-center gap-3">
@@ -93,7 +93,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
 
         {/* Tytuł */}
 
-        <h2 className="truncate text-sm font-medium uppercase text-slate-200 sm:text-lg">
+        <h2 className="truncate text-sm font-medium uppercase  sm:text-lg">
           {title}
         </h2>
       </div>
@@ -129,7 +129,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
             {/* Dane */}
 
             <div className="text-left">
-              <p className="text-sm font-semibold text-slate-200 group-hover:text-white">
+              <p className="text-sm font-semibold text-[#191C1A] ">
                 {user.name}
               </p>
 

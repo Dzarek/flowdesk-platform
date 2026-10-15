@@ -1,18 +1,87 @@
-import { mainNavigation } from "@/config/navigation";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { NavigationItem } from "@/types/navigation";
+import {
+  RiDashboardHorizontalFill,
+  RiLightbulbFlashFill,
+  RiSettings4Fill,
+} from "react-icons/ri";
+import { MdFamilyRestroom } from "react-icons/md";
+import { FaCalendarAlt, FaTasks, FaShoppingCart } from "react-icons/fa";
+import { ImTable } from "react-icons/im";
+import { FaUserDoctor, FaEarthAmericas, FaHouse } from "react-icons/fa6";
+
+const mainNavigation: NavigationItem[] = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: RiDashboardHorizontalFill,
+  },
+  {
+    title: "Rodzina",
+    href: "/dashboard/rodzina",
+    icon: MdFamilyRestroom,
+  },
+  {
+    title: "Kalendarz",
+    href: "/dashboard/kalendarz",
+    icon: FaCalendarAlt,
+  },
+  {
+    title: "Zadania",
+    href: "/dashboard/zadania",
+    icon: FaTasks,
+  },
+  {
+    title: "Zakupy",
+    href: "/dashboard/zakupy",
+    icon: FaShoppingCart,
+  },
+  {
+    title: "Harmonogram",
+    href: "/dashboard/harmonogram",
+    icon: ImTable,
+  },
+  {
+    title: "Zdrowie",
+    href: "/dashboard/zdrowie",
+    icon: FaUserDoctor,
+  },
+  {
+    title: "Dom",
+    href: "/dashboard/dom",
+    icon: FaHouse,
+  },
+  {
+    title: "Energia",
+    href: "/dashboard/energia",
+    icon: RiLightbulbFlashFill,
+  },
+  {
+    title: "Podróże",
+    href: "/dashboard/podroze",
+    icon: FaEarthAmericas,
+  },
+  {
+    title: "Ustawienia",
+    href: "/dashboard/ustawienia",
+    icon: RiSettings4Fill,
+  },
+];
 
 const NavMain = () => {
+  const pathname = usePathname();
   return (
-    <ul className="px-2 flex-1 flex flex-col gap-1 my-7 text-white tracking-wider">
+    <ul className="flex-1 overflow-y-auto pr-3 flex flex-col gap-1 min-[1600px]:gap-2  mt-3 mb-20 text-zinc-100 tracking-wider">
       {mainNavigation.map((item) => {
         return (
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-center gap-4 p-4 py-2.5 hover:bg-emerald-900 duration-300 rounded-lg"
+            className={`flex items-center gap-4 p-4 py-2.5 hover:bg-[#31513a]/40 duration-300 rounded-lg ${pathname === item.href + "/" ? "bg-[#5b755b]" : "bg-[#31513a]/10"} `}
           >
             {<item.icon />}
-            <span className="text-base"> {item.title}</span>
+            <span className="text-sm"> {item.title}</span>
           </Link>
         );
       })}

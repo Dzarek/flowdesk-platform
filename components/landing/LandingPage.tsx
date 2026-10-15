@@ -140,17 +140,9 @@ export default function LandingPage() {
 
           <div className="relative w-full max-w-md">
             <div className="mb-8 text-center">
-              {/* <p className="text-base font-semibold uppercase tracking-[0.2em] text-[#524d43]">
-                Twoja domowa przestrzeń
-              </p> */}
-
               <h2 className="mt-3 uppercase text-lg tracking-[0.2em] [1600px]:text-3xl font-semibold text-[#524d43]">
                 Dobrze, że jesteś.
               </h2>
-
-              {/* <p className="hidden [1600px]:block mt-2 text-sm leading-6 text-[#524d43]">
-                Zaloguj się i wróć do swoich codziennych spraw.
-              </p> */}
             </div>
             <div className="w-[400px] mx-auto [1600px]:w-auto">
               <AuthForm />

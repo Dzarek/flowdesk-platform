@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const Logo = ({ colors = ["#fff", "#fff", "#fff"] }: { colors: string[] }) => {
+const Logo = ({ colors = ["#fff", "#fff", "#fff"] }: { colors?: string[] }) => {
   return (
     <div className="flex mx-auto gap-1 items-center justify-center">
       <Image

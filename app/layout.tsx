@@ -19,7 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LifeHub",
+  title: "LifeHub - Domowe Centrum Operacji",
   description: "Twoje Domowe Centrum Operacji",
 };
 

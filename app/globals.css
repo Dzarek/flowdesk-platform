@@ -5,8 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* --background: oklch(91.887% 0.0001 271.152); */
-  --background: oklch(98.782% 0.01284 131.096);
+  --background: oklch(91.887% 0.0001 271.152);
   --foreground: oklch(0.145 0 0);
   --appHeader: #fff;
   --card: oklch(1 0 0);
@@ -39,6 +38,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --greenBg: #172520;
 }
 
 @theme inline {
@@ -85,7 +86,6 @@
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
 }
 
@@ -133,4 +133,32 @@ body {
   html {
     @apply font-sans;
   }
+}
+
+html {
+  scrollbar-color: #273827 transparent;
+}
+.sidebar-scroll {
+  scrollbar-color: #5b755b transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb {
+  background: #52525b;
+  border-radius: 999px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
 }
