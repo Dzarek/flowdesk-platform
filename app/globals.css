@@ -8,7 +8,8 @@
   --background: oklch(91.887% 0.0001 271.152);
   --foreground: oklch(0.145 0 0);
   --appHeader: #fff;
-  --card: oklch(1 0 0);
+  --card: #fefefa;
+  --cardItem: #f5f6ee;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -77,6 +78,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-cardItem: var(--cardItem);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -94,6 +96,7 @@ body {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
+  --cardItem: #e4ebd5;
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);

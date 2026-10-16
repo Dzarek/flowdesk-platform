@@ -1,10 +1,6 @@
 import Image from "next/image";
 
-const LogoNav = ({
-  colors = ["#fff", "#fff", "#fff"],
-}: {
-  colors?: string[];
-}) => {
+const LogoNav = ({}: { colors?: string[] }) => {
   return (
     <div className="flex gap-1 items-center justify-center">
       <Image

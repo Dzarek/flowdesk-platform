@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { MdOutlineArrowForward, MdOutlineShoppingCart } from "react-icons/md";
 
@@ -38,11 +39,7 @@ export default function ShoppingWidget({ items }: ShoppingWidgetProps) {
       "
     >
       {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <MdOutlineShoppingCart size={24} />
-        </div>
-
+      <div className="mb-6 px-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="font-semibold">Lista zakupów</h2>
 
@@ -52,6 +49,13 @@ export default function ShoppingWidget({ items }: ShoppingWidgetProps) {
               : "Lista jest pusta"}
           </p>
         </div>
+        <Image
+          src="/images/shop.svg"
+          alt="shop"
+          width={50}
+          height={50}
+          className="w-auto h-20"
+        />
       </div>
 
       {/* Shopping items */}
@@ -64,7 +68,7 @@ export default function ShoppingWidget({ items }: ShoppingWidgetProps) {
           visibleItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3"
+              className="flex items-center justify-between rounded-xl bg-cardItem px-4 py-3"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <div className="h-4 w-4 shrink-0 rounded-full border-2 border-primary/60" />

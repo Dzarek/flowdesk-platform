@@ -48,7 +48,7 @@ const EnergyWidget = ({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E4EBD5] text-[#287969]">
             <MdOutlineSolarPower size={25} />
           </div>
 
@@ -131,10 +131,10 @@ const EnergyWidget = ({
                     relative
                     w-full
                     rounded-t-md
-                    bg-primary/20
+                    bg-[#E4EBD5]
                     transition-all
                     duration-300
-                    hover:bg-primary
+                    hover:bg-[#172520]
                   "
                   style={{
                     height: `${height}%`,

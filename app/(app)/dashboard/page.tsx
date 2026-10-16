@@ -6,18 +6,10 @@ import WeatherWidgetContainer from "@/components/dashboard/weather/WeatherWidget
 
 import CalendarWidget from "@/components/dashboard/CalendarWidget";
 import DashboardHero from "@/components/dashboard/DashboardHero";
-import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
 import EnergyWidget from "@/components/dashboard/EnergyWidget";
-import HealthWidget from "@/components/dashboard/HealthWidget";
 import ShoppingWidget from "@/components/dashboard/ShoppingWidget";
 import TasksWidget from "@/components/dashboard/TasksWidget";
-
-import {
-  MdOutlineCalendarMonth,
-  MdOutlineChecklist,
-  MdOutlineShoppingCart,
-  MdOutlineSolarPower,
-} from "react-icons/md";
+import CamerasWidget from "@/components/cameras/CamerasWidget";
 
 export const calendarEvents = [
   {
@@ -248,61 +240,20 @@ export default async function DashboardPage() {
         <DashboardHero data={welcomeData} />
         <WeatherWidgetContainer />
       </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DashboardStatCard
-          title="Wydarzenia dzisiaj"
-          value={4}
-          description="wydarzenia"
-          href="/calendar"
-          icon={MdOutlineCalendarMonth}
-        />
-
-        <DashboardStatCard
-          title="Zadania"
-          value={8}
-          description="na dzisiaj"
-          href="/tasks"
-          icon={MdOutlineChecklist}
-          progress={75}
-          progressLabel="6 z 8 wykonanych"
-        />
-
-        <DashboardStatCard
-          title="Zakupy"
-          value={12}
-          description="produktów"
-          href="/shopping"
-          icon={MdOutlineShoppingCart}
-        />
-
-        <DashboardStatCard
-          title="Energia dzisiaj"
-          value="18.4"
-          description="kWh"
-          href="/energy"
-          icon={MdOutlineSolarPower}
-          trend={{
-            value: "+14%",
-            label: "vs wczoraj",
-            positive: true,
-          }}
-        />
+      <div className="grid grid-cols-3 gap-4 my-4">
+        <TasksWidget tasks={tasks} />
+        <ShoppingWidget items={shoppingItems} />
+        <CalendarWidget events={calendarEvents} />
       </div>
       <div className="grid grid-cols-2 gap-4 my-4">
-        <CalendarWidget events={calendarEvents} />
         <EnergyWidget
           production={energyData.production}
           consumption={energyData.consumption}
           change={energyData.change}
           history={energyData.history}
         />
+        <CamerasWidget />
       </div>
-      {/* <div className="grid grid-cols-3 gap-4 my-4">
-        <TasksWidget tasks={tasks} />
-        <ShoppingWidget items={shoppingItems} />
-        <HealthWidget events={healthEvents} />
-      </div> */}
     </div>
   );
 }

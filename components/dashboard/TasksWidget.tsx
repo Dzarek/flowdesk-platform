@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   MdOutlineArrowForward,
@@ -42,11 +43,7 @@ export default function TasksWidget({ tasks }: TasksWidgetProps) {
       "
     >
       {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <MdOutlineCheckCircle size={24} />
-        </div>
-
+      <div className="mb-6 px-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="font-semibold">Zadania</h2>
 
@@ -56,6 +53,13 @@ export default function TasksWidget({ tasks }: TasksWidgetProps) {
               : "Wszystko zrobione"}
           </p>
         </div>
+        <Image
+          src="/images/tasks.svg"
+          alt="tasks"
+          width={50}
+          height={50}
+          className="w-auto h-20"
+        />
       </div>
 
       {/* Tasks */}
@@ -68,7 +72,7 @@ export default function TasksWidget({ tasks }: TasksWidgetProps) {
           visibleTasks.map((task) => (
             <div
               key={task.id}
-              className="flex items-start gap-3 rounded-xl bg-muted/50 p-3"
+              className="flex items-start gap-3 rounded-xl bg-cardItem p-3"
             >
               <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-primary/60" />
 

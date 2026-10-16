@@ -1,5 +1,6 @@
 import { MdOutlineCalendarMonth, MdOutlineArrowForward } from "react-icons/md";
 import Link from "next/link";
+import Image from "next/image";
 
 type CalendarEvent = {
   id: number;
@@ -35,18 +36,21 @@ export default function CalendarWidget({ events }: CalendarWidgetProps) {
         hover:shadow-lg
       "
     >
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 px-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <MdOutlineCalendarMonth size={24} />
-          </div>
-
           <div>
             <h2 className="font-semibold">Kalendarz</h2>
 
             <p className="text-sm text-muted-foreground">Dzisiaj</p>
           </div>
         </div>
+        <Image
+          src="/images/calendar.svg"
+          alt="shop"
+          width={50}
+          height={50}
+          className="w-auto h-20"
+        />
       </div>
 
       <div className="flex-1 space-y-4">
@@ -56,7 +60,7 @@ export default function CalendarWidget({ events }: CalendarWidgetProps) {
           </div>
         ) : (
           visibleEvents.map((event) => (
-            <div key={event.id} className="rounded-xl bg-muted/50 p-3">
+            <div key={event.id} className="rounded-xl bg-cardItem p-3">
               <div className="text-xs font-semibold uppercase tracking-wide text-primary">
                 {event.time}
               </div>

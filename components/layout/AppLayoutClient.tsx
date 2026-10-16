@@ -75,11 +75,11 @@ export default function AppLayoutClient({
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover opacity-[0.5]"
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.5] rounded-2xl"
           >
             <source src="/videos/videoBg4.webm" type="video/webm" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-br from-[#244C3B]/20 via-[#E8E2D5]/60 to-[#244C3B]/60 " />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#244C3B]/20 via-[#E8E2D5]/60 to-[#244C3B]/60 " />
 
           <div className="z-10 relative">{children}</div>
         </main>
