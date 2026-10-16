@@ -9,6 +9,7 @@ type WeatherData = {
   humidity: number;
   airQuality: number;
   updatedAt: string;
+  weatherCode: number;
 };
 
 type WeatherWidgetContainerProps = {
@@ -68,6 +69,7 @@ export default function WeatherWidgetContainer({
       updatedAt={data?.updatedAt ?? null}
       isLoading={isLoading}
       error={error}
+      weatherCode={data?.weatherCode ?? null}
     />
   );
 }

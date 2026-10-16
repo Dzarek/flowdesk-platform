@@ -194,7 +194,7 @@ function buildAiSummary() {
   }
 
   if (pendingTasks > 0 && eventsCount > 0) {
-    return `Dzisiaj masz ${eventsCount} zaplanowane wydarzenia i ${pendingTasks} niewykonanych zadań. Warto sprawdzić plan dnia i ustalić priorytety.${
+    return `Dzisiaj masz ${eventsCount} zaplanowane wydarzenia i ${pendingTasks} niewykonanych zadań. Warto sprawdzić plan dnia i ustalić priorytety. ${
       pendingShopping > 0
         ? ` Na liście zakupów czeka jeszcze ${pendingShopping} produktów.`
         : ""

@@ -23,6 +23,7 @@ type WeatherResponse = {
     time: string;
     temperature_2m: number;
     relative_humidity_2m: number;
+    weather_code: number;
   };
 };
 
@@ -102,7 +103,7 @@ export async function GET() {
     weatherUrl.searchParams.set("longitude", String(longitude));
     weatherUrl.searchParams.set(
       "current",
-      "temperature_2m,relative_humidity_2m",
+      "temperature_2m,relative_humidity_2m,weather_code",
     );
     weatherUrl.searchParams.set("timezone", "auto");
 
@@ -142,6 +143,7 @@ export async function GET() {
 
     if (
       !weather ||
+      typeof weather.weather_code !== "number" ||
       typeof weather.temperature_2m !== "number" ||
       typeof weather.relative_humidity_2m !== "number"
     ) {
@@ -160,6 +162,7 @@ export async function GET() {
         humidity: weather.relative_humidity_2m,
         airQuality: airQuality.european_aqi,
         updatedAt: weather.time,
+        weatherCode: weather.weather_code,
       },
       {
         headers: {

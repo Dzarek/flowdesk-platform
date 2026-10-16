@@ -3,6 +3,9 @@ import {
   MdOutlineCloud,
   MdOutlineDeviceThermostat,
   MdOutlineWaterDrop,
+  MdOutlineWbSunny,
+  MdOutlineThunderstorm,
+  MdOutlineAcUnit,
 } from "react-icons/md";
 
 type AirQualityLevel =
@@ -21,6 +24,7 @@ type WeatherWidgetProps = {
   isLoading?: boolean;
   error?: string | null;
   updatedAt?: string | null;
+  weatherCode: number | null;
 };
 
 function getAirQuality(value: number | null): {
@@ -92,6 +96,42 @@ function getAirQuality(value: number | null): {
   };
 }
 
+function getWeatherInfo(code: number) {
+  if (code === 0) {
+    return { label: "Bezchmurnie", Icon: MdOutlineWbSunny };
+  }
+
+  if (code === 1) {
+    return { label: "Przeważnie słonecznie", Icon: MdOutlineWbSunny };
+  }
+
+  if (code === 2) {
+    return { label: "Częściowe zachmurzenie", Icon: MdOutlineCloud };
+  }
+
+  if (code === 3) {
+    return { label: "Pochmurno", Icon: MdOutlineCloud };
+  }
+
+  if (code === 45 || code === 48) {
+    return { label: "Mgła", Icon: MdOutlineCloud };
+  }
+
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+    return { label: "Deszcz", Icon: MdOutlineWaterDrop };
+  }
+
+  if (code >= 71 && code <= 86) {
+    return { label: "Opady śniegu", Icon: MdOutlineAcUnit };
+  }
+
+  if (code >= 95 && code <= 99) {
+    return { label: "Burza", Icon: MdOutlineThunderstorm };
+  }
+
+  return { label: "Warunki pogodowe", Icon: MdOutlineCloud };
+}
+
 function WeatherCard({
   title,
   value,
@@ -142,6 +182,7 @@ export default function WeatherWidget({
   isLoading = false,
   error = null,
   updatedAt = null,
+  weatherCode,
 }: WeatherWidgetProps) {
   const air = getAirQuality(airQuality);
   const today = new Date().toLocaleDateString("pl-PL", {
@@ -150,18 +191,18 @@ export default function WeatherWidget({
     month: "long",
     year: "numeric",
   });
-
+  const weather = weatherCode !== null ? getWeatherInfo(weatherCode) : null;
   return (
-    <section className="rounded-4xl h-full border border-[#DCE4D9] bg-[#FEFEFA] p-4 sm:p-5">
+    <section className="rounded-4xl h-[300px] border border-[#DCE4D9] bg-[#FEFEFA] p-4 sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E4EBD5]">
-            <MdOutlineCloud className="h-6 w-6 text-[#287969]" />
+            {weather && <weather.Icon className="h-8 w-8 text-[#287969]" />}
           </div>
 
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-[#263C35]">
-              Pogoda na zewnątrz
+              {weather && weather.label}
             </h2>
 
             <p className="mt-0.5 flex items-center gap-1 text-sm text-[#839087]">
@@ -172,7 +213,7 @@ export default function WeatherWidget({
           </div>
         </div>
         <div className="flex items-center gap-2 rounded-2xl bg-muted px-4 py-2">
-          <p className="text-muted-foreground capitalize font-semibold">
+          <p className="text-muted-foreground capitalize text-sm font-semibold">
             {today}
           </p>
         </div>
@@ -251,8 +292,7 @@ export default function WeatherWidget({
       )}
 
       <p className="mt-3 text-xs text-[#839087]">
-        Dane zewnętrzne · Pogoda i jakość powietrza mogą mieć różne czasy
-        aktualizacji.
+        Pogoda i jakość powietrza mogą mieć różne czasy aktualizacji.
       </p>
     </section>
   );

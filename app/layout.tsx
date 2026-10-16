@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Manrope, Inter } from "next/font/google";
+import { Geist, Manrope, Inter, Quicksand } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
@@ -8,7 +8,7 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export const manrope = Manrope({
+const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
 });
@@ -16,6 +16,10 @@ export const manrope = Manrope({
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   variable: "--font-inter",
+});
+const quicksand = Quicksand({
+  subsets: ["latin"],
+  variable: "--font-quicksand",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="pl" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${inter.variable} ${manrope.variable} antialiased`}
+        className={`${geistSans.variable} ${quicksand.variable} ${inter.variable} ${manrope.variable} antialiased`}
       >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
