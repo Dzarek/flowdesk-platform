@@ -42,13 +42,13 @@ const mainNavigation: NavigationItem[] = [
     href: "/harmonogram",
     icon: ImTable,
   },
+  // {
+  //   title: "Zdrowie",
+  //   href: "/zdrowie",
+  //   icon: FaUserDoctor,
+  // },
   {
-    title: "Zdrowie",
-    href: "/zdrowie",
-    icon: FaUserDoctor,
-  },
-  {
-    title: "Dom",
+    title: "Smart Dom",
     href: "/dom",
     icon: FaHouse,
   },

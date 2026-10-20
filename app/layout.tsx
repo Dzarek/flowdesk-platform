@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Manrope, Inter, Quicksand } from "next/font/google";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
 const geistSans = Geist({

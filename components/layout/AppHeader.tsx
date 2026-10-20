@@ -123,7 +123,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
   };
 
   return (
-    <header className="relative z-30 mb-4 flex h-16 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]  px-3 text-[#263C35] shadow-sm sm:px-5 lg:h-[72px] lg:px-10">
+    <header className="relative z-10 mb-4 flex h-16 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]  px-3 text-[#263C35] shadow-sm sm:px-5 lg:h-[72px] lg:px-10">
       <div className="absolute rounded-2xl inset-0 -z-10 bg-gradient-to-br from-[#244C3B]/20 via-[#E8E2D5]/60 to-[#244C3B]/20 " />
 
       {/* Lewa strona */}

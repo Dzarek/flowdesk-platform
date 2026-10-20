@@ -10,6 +10,7 @@ import {
   MdDeleteOutline,
   MdEdit,
   MdRepeat,
+  MdViewWeek,
 } from "react-icons/md";
 import { mockScheduleEntries } from "@/lib/schedule/mock-data";
 import type { ScheduleEntry, ScheduleEntryType } from "@/lib/schedule/types";
@@ -17,6 +18,9 @@ import type { ScheduleEntry, ScheduleEntryType } from "@/lib/schedule/types";
 import { mockScheduleNotes } from "@/lib/schedule/mock-notes";
 import type { ScheduleNote } from "@/lib/schedule/types";
 import { MdStickyNote2 } from "react-icons/md";
+
+import { mockFamilyMembers } from "@/lib/family/mock-data";
+import Image from "next/image";
 
 const DAYS = [
   "Poniedziałek",
@@ -33,12 +37,12 @@ const END_HOUR = 22;
 const HOUR_HEIGHT = 72;
 const GRID_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
 
-const MEMBERS = [
-  { id: "member-1", name: "Jarek", initials: "J", color: "#DDEBE2" },
-  { id: "member-2", name: "Anna", initials: "A", color: "#F3E4D6" },
-  { id: "member-3", name: "Ola", initials: "O", color: "#E4E5F5" },
-  { id: "member-4", name: "Maja", initials: "M", color: "#F5E3EB" },
-];
+// const MEMBERS = [
+//   { id: "member-1", name: "Jarek", initials: "J", color: "#DDEBE2" },
+//   { id: "member-2", name: "Anna", initials: "A", color: "#F3E4D6" },
+//   { id: "member-3", name: "Ola", initials: "O", color: "#E4E5F5" },
+//   { id: "member-4", name: "Maja", initials: "M", color: "#F5E3EB" },
+// ];
 
 const TYPE_OPTIONS: { value: ScheduleEntryType; label: string }[] = [
   { value: "WORK", label: "Praca" },
@@ -174,7 +178,8 @@ export default function SchedulePageContent() {
 
   const todayString = toDateString(new Date());
   const currentMember =
-    MEMBERS.find((member) => member.id === selectedMemberId) ?? MEMBERS[0];
+    mockFamilyMembers.find((member) => member.id === selectedMemberId) ??
+    mockFamilyMembers[0];
 
   const isCurrentWeek =
     toDateString(weekStart) === toDateString(getMonday(new Date()));
@@ -327,28 +332,51 @@ export default function SchedulePageContent() {
 
   return (
     <div className="space-y-6 pb-8 text-[#263C35]">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="mb-2 text-sm font-semibold text-[#839087]">
-            ORGANIZACJA RODZINY
-          </p>
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            Harmonogram
-          </h1>
-          <p className="mt-2 text-sm text-[#839087]">
-            Wszystkie ważne zajęcia w jednym miejscu.
-          </p>
-        </div>
+      {/* Nagłówek */}
+      <section className="relative overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:p-8 lg:p-10">
+        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
+        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
 
-        <button
-          type="button"
-          onClick={() => openAdd(new Date())}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
-        >
-          <MdAdd size={20} />
-          Dodaj wydarzenie
-        </button>
-      </header>
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-10">
+          <Image
+            src="/images/scheduleHeader2.svg"
+            alt="schedule"
+            width={300}
+            height={300}
+            className="h-full object-cover rotate-y-180"
+          />
+          <div className="max-w-2xl absolute top-1/2 left-1/2 -translate-1/2 flex flex-col items-center">
+            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
+              <MdViewWeek size={21} />
+              <span>Organizacja rodziny</span>
+            </div>
+
+            <h1 className="text-4xl font-extrabold tracking-tight text-[#19483D] sm:text-5xl">
+              Harmonogram
+            </h1>
+
+            <p className="mt-4 max-w-xl text-base leading-7 text-[#718078]">
+              Wszystkie ważne zajęcia w jednym miejscu.
+            </p>
+            <button
+              type="button"
+              onClick={() => openAdd(new Date())}
+              className="mt-10 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
+            >
+              <MdAdd size={20} />
+              Dodaj wydarzenie
+            </button>
+          </div>
+
+          <Image
+            src="/images/scheduleHeader.svg"
+            alt="schedule"
+            width={330}
+            height={330}
+            className="h-full object-cover"
+          />
+        </div>
+      </section>
 
       <section className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 sm:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -387,7 +415,7 @@ export default function SchedulePageContent() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {MEMBERS.map((member) => {
+          {mockFamilyMembers.map((member) => {
             const active = selectedMemberId === member.id;
 
             return (
@@ -402,21 +430,38 @@ export default function SchedulePageContent() {
                     : "border-[#DCE4D9] bg-white text-[#65746A] hover:bg-[#F5F6EE]"
                 }`}
               >
-                <span
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-extrabold"
-                  style={{ backgroundColor: member.color }}
-                >
-                  {member.initials}
-                </span>
+                <>
+                  {member.img ? (
+                    <Image
+                      src={member.img}
+                      alt={member.name}
+                      height={50}
+                      width={50}
+                      className="rounded-full object-cover w-6 h-6"
+                    />
+                  ) : (
+                    <span
+                      className={`flex shrink-0 items-center justify-center rounded-full font-bold text-[#38544A] `}
+                      style={{ backgroundColor: member.color }}
+                      title={member.name}
+                    >
+                      {member.name
+                        .trim()
+                        .split(/\s+/)
+                        .slice(0, 2)
+                        .map((part) => part[0])
+                        .join("")
+                        .toUpperCase()}
+                    </span>
+                  )}
+                </>
                 {member.name}
               </button>
             );
           })}
         </div>
-      </section>
 
-      <section className="overflow-hidden rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#DCE4D9] px-4 py-3">
+        <div className="mt-10 flex items-center justify-between gap-3 border-b border-[#DCE4D9] px-4 py-3">
           <div className="flex items-center gap-2">
             <MdCalendarMonth className="text-[#287969]" size={21} />
             <h2 className="font-extrabold">Plan: {currentMember.name}</h2>
@@ -605,7 +650,7 @@ export default function SchedulePageContent() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="schedule-modal-title"
-            className="my-auto w-full max-w-lg rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-xl sm:p-6"
+            className="my-auto w-full max-h-[90vh] overflow-y-auto max-w-lg rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-xl sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
