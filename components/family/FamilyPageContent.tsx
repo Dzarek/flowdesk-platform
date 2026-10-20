@@ -295,7 +295,7 @@ export default function FamilyPageContent() {
               <span>Rodzina</span>
             </div>
 
-            <h1 className="text-4xl font-semibold tracking-tight text-[#19483D] sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-[#19483D] sm:text-5xl">
               Nasza rodzina
             </h1>
 

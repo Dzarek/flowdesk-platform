@@ -323,7 +323,7 @@ export default function CalendarPageContent() {
       </section>
 
       {/* Kalendarz i szczegóły */}
-      <section className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+      <section className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0 rounded-3xl border border-[#E4E9E0] bg-[#FEFEFA] p-4 sm:p-6">
           {/* Nawigacja miesiąca */}
           <div className="flex flex-wrap items-center justify-between gap-3">

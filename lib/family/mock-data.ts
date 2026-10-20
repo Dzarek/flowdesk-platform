@@ -31,8 +31,8 @@ export const mockFamilyMembers: FamilyMember[] = [
   },
   {
     id: "member-4",
-    name: "Maja",
-    email: "maja@example.com",
+    name: "Michał",
+    email: "michal@example.com",
     role: "CHILD",
     img: "/images/mock-family/chłopiec.jpg",
     color: "#EDE2F4",
