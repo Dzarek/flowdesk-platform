@@ -123,62 +123,49 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
   };
 
   return (
-    <header className="relative z-30 mb-4 flex h-16 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]  px-3 text-[#263C35] shadow-sm sm:px-5 lg:h-[72px] lg:px-6">
+    <header className="relative z-30 mb-4 flex h-16 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]  px-3 text-[#263C35] shadow-sm sm:px-5 lg:h-[72px] lg:px-10">
       <div className="absolute rounded-2xl inset-0 -z-10 bg-gradient-to-br from-[#244C3B]/20 via-[#E8E2D5]/60 to-[#244C3B]/20 " />
 
       {/* Lewa strona */}
-      <div className="flex min-w-0 shrink-0 items-center gap-3">
-        <button
-          type="button"
-          onClick={onMobileMenuOpen}
-          aria-label="Otwórz menu"
-          className="flex size-10 items-center justify-center rounded-xl text-[#287969] transition hover:bg-[#E2F0EB] lg:hidden"
+      <div className="flex flex-1 min-w-0 shrink-0 items-center gap-3">
+        {/* Wyszukiwarka */}
+        <form
+          onSubmit={handleSearch}
+          role="search"
+          className="hidden min-w-0 max-w-md flex-1 md:block"
         >
-          <MdMenu size={24} />
-        </button>
+          <div className="group flex h-10 items-center gap-2 rounded-xl border border-[#DCE4D9] bg-[#F5F6EE] px-3 transition focus-within:border-[#287969] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#287969]/10">
+            <MdOutlineSearch className="shrink-0 text-xl text-[#839087] transition group-focus-within:text-[#287969]" />
 
-        <h1 className="truncate text-sm font-bold tracking-wide text-[#19483D] sm:text-base">
-          {title}
-        </h1>
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Szukaj..."
+              aria-label="Szukaj w LifeHub"
+              className="min-w-0 flex-1 bg-transparent text-sm text-[#263C35] outline-none placeholder:text-[#839087]"
+            />
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  searchRef.current?.focus();
+                }}
+                aria-label="Wyczyść wyszukiwanie"
+                className="rounded-md p-1 text-[#839087] hover:bg-[#E2F0EB] hover:text-[#287969]"
+              >
+                <MdClose size={16} />
+              </button>
+            )}
+
+            <kbd className="hidden rounded-md border border-[#DCE4D9] bg-white px-1.5 py-0.5 text-[10px] text-[#839087] lg:inline-block">
+              Ctrl K
+            </kbd>
+          </div>
+        </form>
       </div>
-
-      {/* Wyszukiwarka */}
-      <form
-        onSubmit={handleSearch}
-        role="search"
-        className="ml-auto hidden min-w-0 max-w-md flex-1 md:block"
-      >
-        <div className="group flex h-10 items-center gap-2 rounded-xl border border-[#DCE4D9] bg-[#F5F6EE] px-3 transition focus-within:border-[#287969] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#287969]/10">
-          <MdOutlineSearch className="shrink-0 text-xl text-[#839087] transition group-focus-within:text-[#287969]" />
-
-          <input
-            ref={searchRef}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Szukaj..."
-            aria-label="Szukaj w LifeHub"
-            className="min-w-0 flex-1 bg-transparent text-sm text-[#263C35] outline-none placeholder:text-[#839087]"
-          />
-
-          {search && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                searchRef.current?.focus();
-              }}
-              aria-label="Wyczyść wyszukiwanie"
-              className="rounded-md p-1 text-[#839087] hover:bg-[#E2F0EB] hover:text-[#287969]"
-            >
-              <MdClose size={16} />
-            </button>
-          )}
-
-          <kbd className="hidden rounded-md border border-[#DCE4D9] bg-white px-1.5 py-0.5 text-[10px] text-[#839087] lg:inline-block">
-            Ctrl K
-          </kbd>
-        </div>
-      </form>
 
       {/* Prawa strona */}
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">

@@ -180,7 +180,9 @@ export default function AppSidebar({
           {/* Bottom */}
 
           <div className="border-t border-white/10 pt-3">
-            <ThemeToggle />
+            <p className="mt-6 text-center text-sm italic font-semibold text-[#667666]">
+              Jedna przestrzeń - Cała rodzina
+            </p>
           </div>
         </div>
       </aside>

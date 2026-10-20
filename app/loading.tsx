@@ -3,15 +3,6 @@ import Image from "next/image";
 export default function Loading() {
   return (
     <div className="flex h-screen overflow-hidden items-center justify-center">
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="fixed inset-0 -z-10 h-full w-full object-cover opacity-25"
-      >
-        <source src="/videos/videoBg4.webm" type="video/webm" />
-      </video>
       <div className="flex flex-col items-center">
         <Image
           src="/logo2.png"

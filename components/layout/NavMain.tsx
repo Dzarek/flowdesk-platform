@@ -19,17 +19,17 @@ const mainNavigation: NavigationItem[] = [
   },
   {
     title: "Rodzina",
-    href: "/dashboard/rodzina",
+    href: "/rodzina",
     icon: MdFamilyRestroom,
   },
   {
     title: "Kalendarz",
-    href: "/dashboard/kalendarz",
+    href: "/kalendarz",
     icon: FaCalendarAlt,
   },
   {
     title: "Zadania",
-    href: "/dashboard/zadania",
+    href: "/zadania",
     icon: FaTasks,
   },
   {
@@ -39,32 +39,32 @@ const mainNavigation: NavigationItem[] = [
   },
   {
     title: "Harmonogram",
-    href: "/dashboard/harmonogram",
+    href: "/harmonogram",
     icon: ImTable,
   },
   {
     title: "Zdrowie",
-    href: "/dashboard/zdrowie",
+    href: "/zdrowie",
     icon: FaUserDoctor,
   },
   {
     title: "Dom",
-    href: "/dashboard/dom",
+    href: "/dom",
     icon: FaHouse,
   },
   {
     title: "Energia",
-    href: "/dashboard/energia",
+    href: "/energia",
     icon: RiLightbulbFlashFill,
   },
   {
     title: "Podróże",
-    href: "/dashboard/podroze",
+    href: "/podroze",
     icon: FaEarthAmericas,
   },
   {
     title: "Ustawienia",
-    href: "/dashboard/ustawienia",
+    href: "/ustawienia",
     icon: RiSettings4Fill,
   },
 ];
