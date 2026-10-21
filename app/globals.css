@@ -41,7 +41,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 
   --greenBg: #172520;
-  --greenText: #263d35;
+  --greenText: #345248;
 }
 
 @theme inline {
@@ -169,4 +169,12 @@ html::-webkit-scrollbar-thumb {
 .sidebar-scroll::-webkit-scrollbar-thumb:hover,
 html::-webkit-scrollbar-thumb:hover {
   background: #71717a;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }

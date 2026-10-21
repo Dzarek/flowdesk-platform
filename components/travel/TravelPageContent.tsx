@@ -133,6 +133,7 @@ export default function TravelPageContent() {
   }
 
   function openEdit(trip: Trip) {
+    setSelectedTripId(null);
     setPlaceQuery("");
     setPlaceResults([]);
     setPlaceSearchError("");
@@ -387,7 +388,7 @@ export default function TravelPageContent() {
         <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
         <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
 
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-10">
           <Image
             src="/images/travelHeader2.svg"
             alt="tasks"
@@ -428,7 +429,7 @@ export default function TravelPageContent() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 mx-10">
         <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-4">
           <FaPersonWalkingLuggage size={50} className="text-[#287969]" />
           <p className="text-lg text-[#839087]">Wszystkie podróże:</p>
@@ -446,14 +447,16 @@ export default function TravelPageContent() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-xl font-extrabold">Mapa naszych podróży</h2>
-            <p className="mt-1 text-sm text-[#839087]">
-              Kliknij pinezkę, aby zobaczyć miejsce i powiązany wyjazd.
-            </p>
-          </div>
+      <section className="rounded-2xl border border-[#DCE4D9] bg-[var(--greenBg)] text-white p-4 sm:p-5 mx-20">
+        <div className="mt-2">
+          <h2 className="text-xl font-semibold uppercase text-center">
+            Mapa naszych podróży
+          </h2>
+          <p className="mt-2 text-sm text-[#b5c8bb] text-center">
+            Kliknij pinezkę, aby zobaczyć miejsce i powiązany wyjazd.
+          </p>
+        </div>
+        <div className="flex -mt-12 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -461,7 +464,7 @@ export default function TravelPageContent() {
               className={`rounded-xl px-3 py-2 text-sm font-bold ${
                 scope === "WORLD"
                   ? "bg-[#287969] text-white"
-                  : "border border-[#DCE4D9] hover:bg-[#F5F6EE]"
+                  : "border border-[#DCE4D9] hover:bg-[#F5F6EE] hover:text-zinc-800"
               }`}
             >
               <MdPublic className="mr-1 inline" size={17} />
@@ -473,7 +476,7 @@ export default function TravelPageContent() {
               className={`rounded-xl px-3 py-2 text-sm font-bold ${
                 scope === "POLAND"
                   ? "bg-[#287969] text-white"
-                  : "border border-[#DCE4D9] hover:bg-[#F5F6EE]"
+                  : "border border-[#DCE4D9] hover:bg-[#F5F6EE] hover:text-zinc-800"
               }`}
             >
               <MdMap className="mr-1 inline" size={17} />
@@ -483,7 +486,7 @@ export default function TravelPageContent() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="mr-1 text-sm text-[#839087]">Pokaż:</span>
+          <span className="mr-1 text-sm text-[#b5c8bb]">Pokaż:</span>
           {(
             [
               ["ALL", "Wszystkie"],
@@ -495,16 +498,16 @@ export default function TravelPageContent() {
               key={value}
               type="button"
               onClick={() => setMapFilter(value)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold border ${
                 mapFilter === value
                   ? "bg-[#E2F0EB] text-[#19483D]"
-                  : "text-[#65746A] hover:bg-[#F5F6EE]"
+                  : "text-[#b5c8bb] hover:bg-[#F5F6EE] hover:text-[#3e453f]"
               }`}
             >
               {label}
             </button>
           ))}
-          <span className="ml-auto flex items-center gap-3 text-xs text-[#839087]">
+          <span className="ml-auto flex items-center gap-3 text-sm text-[#b5c8bb]">
             <span className="flex items-center gap-1">
               <span className="h-2.5 w-2.5 rounded-full bg-[#287969]" />
               Odwiedzone
@@ -516,7 +519,7 @@ export default function TravelPageContent() {
           </span>
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-xl">
+        <div className="mt-4 overflow-hidden rounded-xl sepia-20 saturate-80 brightness-90 hover:brightness-100 duration-300">
           <TravelMap
             trips={trips}
             scope={scope}
@@ -527,302 +530,491 @@ export default function TravelPageContent() {
       </section>
 
       {selectedTrip && (
-        <section className="rounded-2xl border border-[#C9DED2] bg-[#F5F8F1] p-4 sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row">
-            {selectedTrip.coverImage ? (
-              <img
-                src={selectedTrip.coverImage}
-                alt=""
-                className="h-36 w-full rounded-xl object-cover sm:w-48"
-              />
-            ) : (
-              <div className="flex h-36 w-full items-center justify-center rounded-xl bg-[#E2F0EB] sm:w-48">
-                <MdTravelExplore size={42} className="text-[#287969]" />
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-extrabold">{selectedTrip.title}</h2>
-                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-[#65746A]">
-                  {selectedTrip.status === "COMPLETED"
-                    ? "Odwiedzona"
-                    : "Planowana"}
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-[#65746A]">
-                {formatDate(selectedTrip.startDate)} –{" "}
-                {formatDate(selectedTrip.endDate)}
-              </p>
-              {selectedTrip.description && (
-                <p className="mt-2 text-sm">{selectedTrip.description}</p>
-              )}
-              <p className="mt-2 text-sm text-[#65746A]">
-                {getTripPlaces(selectedTrip) || "Nie dodano jeszcze miejsc."}
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => openEdit(selectedTrip)}
-                  className="rounded-xl bg-[#287969] px-3 py-2 text-sm font-bold text-white"
+        <div
+          className="fixed inset-0 h-screen w-screen z-[1100] flex items-center justify-center bg-[#17251F]/55 p-3 backdrop-blur-sm sm:p-6"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedTripId(null);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="trip-modal-title"
+            className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-[#DCE4D9] bg-[#FEFEFA] shadow-2xl shadow-[#17251F]/20"
+          >
+            {/* Nagłówek modala */}
+            <div className="flex shrink-0 items-center justify-between border-b border-[#E9EDE6] px-5 py-4 sm:px-7">
+              <div>
+                <h2
+                  id="trip-modal-title"
+                  className="mt-1 text-xl font-extrabold text-[var(--greenText)]"
                 >
-                  Edytuj podróż
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deleteTrip(selectedTrip.id)}
-                  className="rounded-xl border border-[#DCE4D9] bg-white px-3 py-2 text-sm font-bold text-red-600"
-                >
-                  Usuń
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTripId(null)}
-                  className="rounded-xl px-3 py-2 text-sm font-bold text-[#65746A]"
-                >
-                  Zamknij
-                </button>
+                  Szczegóły podróży
+                </h2>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedTripId(null)}
+                aria-label="Zamknij szczegóły podróży"
+                className="cursor-pointer rounded-xl p-2 text-[#65746A] transition hover:bg-[#E4EBD5] hover:text-[#19483D]"
+              >
+                <MdClose size={23} />
+              </button>
             </div>
-          </div>
 
-          <div className="mt-6 border-t border-[#DCE4D9] pt-5">
-            {(() => {
-              const total = selectedTrip.checklist.length;
-              const completed = selectedTrip.checklist.filter(
-                (item) => item.completed,
-              ).length;
-              const progress =
-                total === 0 ? 0 : Math.round((completed / total) * 100);
+            {/* Przewijana zawartość */}
+            <div className="overflow-y-auto">
+              {/* Informacje o podróży */}
+              <div className="p-5 sm:p-7">
+                <div className="flex flex-col gap-5 sm:flex-row">
+                  {selectedTrip.coverImage ? (
+                    <Image
+                      src={selectedTrip.coverImage}
+                      alt={`Zdjęcie z podróży: ${selectedTrip.title}`}
+                      width={400}
+                      height={400}
+                      className="h-48 w-full rounded-2xl object-cover sm:h-44 sm:w-52"
+                    />
+                  ) : (
+                    <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-[#E2F0EB] to-[#D7E6D8] sm:h-44 sm:w-52">
+                      <MdTravelExplore size={48} className="text-[#287969]" />
+                    </div>
+                  )}
 
-              return (
-                <>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-lg font-extrabold">
-                        Lista przygotowań
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-2xl font-extrabold tracking-tight text-[#263C35]">
+                        {selectedTrip.title}
                       </h3>
-                      <p className="mt-1 text-sm text-[#839087]">
-                        Zaznaczaj rzeczy, które masz już załatwione.
-                      </p>
+
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-bold ${
+                          selectedTrip.status === "COMPLETED"
+                            ? "bg-[#E2F0EB] text-[#19483D]"
+                            : "bg-[#FFF1D8] text-[#79551E]"
+                        }`}
+                      >
+                        {selectedTrip.status === "COMPLETED"
+                          ? "Odwiedzona"
+                          : "Planowana"}
+                      </span>
                     </div>
 
-                    <span className="rounded-full bg-[#E2F0EB] px-3 py-1.5 text-sm font-bold text-[#19483D]">
-                      {completed}/{total}
-                    </span>
+                    <p className="mt-3 flex items-center gap-2 text-sm text-[#65746A]">
+                      <MdCalendarMonth size={18} />
+                      {formatDate(selectedTrip.startDate)} –{" "}
+                      {formatDate(selectedTrip.endDate)}
+                    </p>
+
+                    {selectedTrip.description && (
+                      <p className="mt-3 text-sm leading-6 text-[#65746A]">
+                        {selectedTrip.description}
+                      </p>
+                    )}
+
+                    <div className="mt-4 flex items-start gap-2 text-sm text-[#65746A]">
+                      <FaMapPin className="mt-0.5 shrink-0 text-[#287969]" />
+                      <span>
+                        {getTripPlaces(selectedTrip) ||
+                          "Nie dodano jeszcze miejsc."}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(selectedTrip)}
+                        className="cursor-pointer rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#19483D]"
+                      >
+                        Edytuj podróż
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => deleteTrip(selectedTrip.id)}
+                        className="cursor-pointer rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-50"
+                      >
+                        Usuń
+                      </button>
+                    </div>
                   </div>
+                </div>
+              </div>
 
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#DCE4D9]">
-                    <div
-                      className="h-full rounded-full bg-[#287969] transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+              {/* Lista przygotowań */}
+              <div className="border-t border-[#E9EDE6] bg-[#F8F9F4] px-5 py-6 sm:px-7">
+                {(() => {
+                  const total = selectedTrip.checklist.length;
+                  const completed = selectedTrip.checklist.filter(
+                    (item) => item.completed,
+                  ).length;
+                  const progress =
+                    total === 0 ? 0 : Math.round((completed / total) * 100);
 
-                  <p className="mt-1.5 text-xs text-[#839087]">
-                    {total === 0
-                      ? "Dodaj pierwszą rzecz do przygotowania."
-                      : `Ukończono ${progress}% przygotowań`}
-                  </p>
+                  return (
+                    <>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-extrabold text-[#263C35]">
+                            Lista przygotowań
+                          </h3>
+                          <p className="mt-1 text-sm text-[#839087]">
+                            Wszystko, co warto przygotować przed wyjazdem.
+                          </p>
+                        </div>
 
-                  <div className="mt-4 space-y-2">
-                    {selectedTrip.checklist.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 rounded-xl border border-[#DCE4D9] bg-white p-3"
+                        <span className="rounded-xl bg-[#E2F0EB] px-3 py-2 text-sm font-extrabold text-[#19483D]">
+                          {completed}/{total}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#DCE4D9]">
+                        <div
+                          className="h-full rounded-full bg-[#287969] transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+
+                      <p className="mt-2 text-xs text-[#839087]">
+                        {total === 0
+                          ? "Dodaj pierwszą rzecz do przygotowania."
+                          : `Ukończono ${progress}% przygotowań`}
+                      </p>
+
+                      <div className="mt-5 space-y-2">
+                        {selectedTrip.checklist.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 rounded-xl border border-[#DCE4D9] bg-white p-3 transition hover:border-[#B8CFC0]"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={item.completed}
+                              onChange={() =>
+                                toggleChecklistItem(selectedTrip.id, item.id)
+                              }
+                              aria-label={`Oznacz: ${item.title}`}
+                              className="h-4 w-4 shrink-0 cursor-pointer accent-[#287969]"
+                            />
+
+                            <span
+                              className={`min-w-0 flex-1 text-sm ${
+                                item.completed
+                                  ? "text-[#839087] line-through"
+                                  : "text-[#263C35]"
+                              }`}
+                            >
+                              {item.title}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                deleteChecklistItem(selectedTrip.id, item.id)
+                              }
+                              aria-label={`Usuń: ${item.title}`}
+                              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
+                            >
+                              <MdDeleteOutline size={19} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <form
+                        className="mt-4 flex flex-col gap-2 sm:flex-row"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          addChecklistItem(selectedTrip.id);
+                        }}
                       >
                         <input
-                          type="checkbox"
-                          checked={item.completed}
-                          onChange={() =>
-                            toggleChecklistItem(selectedTrip.id, item.id)
+                          value={newChecklistItem}
+                          onChange={(event) =>
+                            setNewChecklistItem(event.target.value)
                           }
-                          aria-label={`Oznacz: ${item.title}`}
-                          className="h-4 w-4 shrink-0 accent-[#287969]"
+                          placeholder="Np. kupić krem z filtrem"
+                          aria-label="Nowa rzecz do przygotowania"
+                          className="min-w-0 flex-1 rounded-xl border border-[#DCE4D9] bg-white px-3 py-3 text-sm outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
                         />
 
-                        <span
-                          className={`min-w-0 flex-1 text-sm ${
-                            item.completed
-                              ? "text-[#839087] line-through"
-                              : "text-[#263C35]"
-                          }`}
-                        >
-                          {item.title}
-                        </span>
-
                         <button
-                          type="button"
-                          onClick={() =>
-                            deleteChecklistItem(selectedTrip.id, item.id)
-                          }
-                          aria-label={`Usuń: ${item.title}`}
-                          className="rounded-lg p-2 text-[#839087] hover:bg-red-50 hover:text-red-600"
+                          type="submit"
+                          disabled={!newChecklistItem.trim()}
+                          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <MdDeleteOutline size={19} />
+                          <MdAdd size={18} />
+                          Dodaj pozycję
                         </button>
-                      </div>
-                    ))}
-                  </div>
+                      </form>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
 
-                  <form
-                    className="mt-4 flex flex-col gap-2 sm:flex-row"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      addChecklistItem(selectedTrip.id);
-                    }}
-                  >
-                    <input
-                      value={newChecklistItem}
-                      onChange={(event) =>
-                        setNewChecklistItem(event.target.value)
-                      }
-                      placeholder="Np. kupić krem z filtrem"
-                      aria-label="Nowa rzecz do przygotowania"
-                      className="min-w-0 flex-1 rounded-xl border border-[#DCE4D9] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#287969]"
-                    />
-
-                    <button
-                      type="submit"
-                      disabled={!newChecklistItem.trim()}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <MdAdd size={18} />
-                      Dodaj pozycję
-                    </button>
-                  </form>
-                </>
-              );
-            })()}
-          </div>
-        </section>
+            {/* Stopka */}
+            <div className="flex shrink-0 justify-end border-t border-[#E9EDE6] bg-[#FEFEFA] px-5 py-3 sm:px-7">
+              <button
+                type="button"
+                onClick={() => setSelectedTripId(null)}
+                className="cursor-pointer rounded-xl border border-[#DCE4D9] px-4 py-2.5 text-sm font-bold text-[#263C35] transition hover:bg-[#F5F6EE]"
+              >
+                Zamknij
+              </button>
+            </div>
+          </section>
+        </div>
       )}
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mt-20 space-y-6 px-4 sm:px-6 lg:px-10">
+        {/* Nagłówek */}
+        <h2 className="text-3xl font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl text-center uppercase">
+          Lista podróży
+        </h2>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-xl font-extrabold">Lista podróży</h2>
-            <p className="mt-1 text-sm text-[#839087]">
-              Twoje plany i zapisane wspomnienia.
+            <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-[var(--greenText)]">
+              Dziennik rodzinnych przygód
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#313833] sm:text-lg">
+              Odkrywaj nowe miejsca, planuj kolejne wyjazdy i wracaj do
+              najpiękniejszych wspomnień.
             </p>
           </div>
-          <label className="flex items-center gap-2 rounded-xl border border-[#DCE4D9] bg-[#FEFEFA] px-3 py-2.5">
-            <MdSearch size={19} className="text-[#839087]" />
+
+          <label className="flex w-full items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] px-4 py-3 transition focus-within:border-[#287969] focus-within:ring-2 focus-within:ring-[#287969]/10 lg:max-w-sm">
+            <MdSearch size={21} className="shrink-0 text-[#839087]" />
+
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Szukaj podróży..."
-              className="w-full bg-transparent text-sm outline-none sm:w-52"
+              className="w-full bg-transparent text-sm text-[#263C35] outline-none placeholder:text-[#9AA59B]"
             />
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Wyczyść wyszukiwanie"
+                className="cursor-pointer rounded-lg p-1 text-[#839087] transition hover:bg-[#E4EBD5] hover:text-[#19483D]"
+              >
+                <MdClose size={18} />
+              </button>
+            )}
           </label>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {(
-            [
-              ["ALL", "Wszystkie"],
-              ["PLANNED", "Planowane"],
-              ["COMPLETED", "Historia"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setListFilter(value)}
-              className={`rounded-xl px-4 py-2 text-sm font-bold ${
-                listFilter === value
-                  ? "bg-[#E2F0EB] text-[#19483D]"
-                  : "border border-[#DCE4D9] bg-[#FEFEFA] text-[#65746A]"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        {/* Filtry */}
+        <div className="flex flex-col gap-3 border-b border-[#DCE4D9] pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            {(
+              [
+                ["ALL", "Wszystkie"],
+                ["PLANNED", "Planowane"],
+                ["COMPLETED", "Historia"],
+              ] as const
+            ).map(([value, label]) => {
+              const active = listFilter === value;
+
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setListFilter(value)}
+                  aria-pressed={active}
+                  className={`cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200 ${
+                    active
+                      ? "bg-[#287969] text-white shadow-sm"
+                      : "border border-[#DCE4D9] bg-[#FEFEFA] text-[#65746A] hover:border-[#B8CFC0] hover:bg-[#E4EBD5]"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-sm uppercase font-medium text-[#353b37]">
+            Znaleziono{" "}
+            <span className="font-bold text-[#263C35]">
+              {filteredTrips.length}
+            </span>{" "}
+            {filteredTrips.length === 1
+              ? "podróż"
+              : filteredTrips.length >= 2 && filteredTrips.length <= 4
+                ? "podróże"
+                : "podróży"}
+          </p>
         </div>
 
+        {/* Lista kart */}
         {filteredTrips.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#DCE4D9] bg-[#FEFEFA] p-8 text-center">
-            <MdTravelExplore size={34} className="mx-auto text-[#839087]" />
-            <p className="mt-3 font-bold">Nie znaleziono podróży</p>
-            <p className="mt-1 text-sm text-[#839087]">
-              Zmień wyszukiwanie lub dodaj nowy wyjazd.
+          <div className="rounded-3xl border border-dashed border-[#C9D8CA] bg-[#F5F6EE] px-6 py-14 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E2F0EB]">
+              <MdTravelExplore size={32} className="text-[#287969]" />
+            </div>
+
+            <h3 className="mt-5 text-lg font-extrabold text-[#263C35]">
+              Nie znaleziono podróży
+            </h3>
+
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#839087]">
+              Spróbuj zmienić wyszukiwanie lub wybrany filtr, aby znaleźć
+              zapisane wyjazdy.
             </p>
+
+            {(search || listFilter !== "ALL") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setListFilter("ALL");
+                }}
+                className="mt-5 cursor-pointer rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#19483D]"
+              >
+                Wyczyść filtry
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredTrips.map((trip) => (
-              <article
-                key={trip.id}
-                className="overflow-hidden rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]"
-              >
-                <button
-                  type="button"
-                  onClick={() => setSelectedTripId(trip.id)}
-                  className="block w-full text-left"
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredTrips.map((trip) => {
+              const checklistTotal = trip.checklist.length;
+              const checklistCompleted = trip.checklist.filter(
+                (item) => item.completed,
+              ).length;
+
+              const checklistProgress =
+                checklistTotal > 0
+                  ? Math.round((checklistCompleted / checklistTotal) * 100)
+                  : 0;
+
+              return (
+                <article
+                  key={trip.id}
+                  className="group overflow-hidden rounded-3xl border border-[#DCE4D9] bg-[#FEFEFA] transition duration-300 hover:-translate-y-1 hover:border-[#B8CFC0] hover:shadow-lg hover:shadow-[#19483D]/5"
                 >
-                  {trip.coverImage ? (
-                    <Image
-                      src={trip.coverImage}
-                      alt="zdjęcie z podróży"
-                      width={500}
-                      height={500}
-                      className="h-44 w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-44 items-center justify-center bg-[#E2F0EB]">
-                      <MdTravelExplore size={42} className="text-[#287969]" />
-                    </div>
-                  )}
-                </button>
-                <div className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate font-extrabold">{trip.title}</h3>
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-[#839087]">
-                        <MdCalendarMonth size={15} />
+                  {/* Zdjęcie */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTripId(trip.id)}
+                    aria-label={`Pokaż szczegóły podróży: ${trip.title}`}
+                    className="relative block w-full cursor-pointer overflow-hidden text-left"
+                  >
+                    {trip.coverImage ? (
+                      <Image
+                        src={trip.coverImage}
+                        alt={`Zdjęcie z podróży: ${trip.title}`}
+                        width={800}
+                        height={500}
+                        className="h-52 w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                      />
+                    ) : (
+                      <div className="flex h-52 items-center justify-center bg-gradient-to-br from-[#E2F0EB] via-[#EDF1E7] to-[#D7E6D8] transition duration-500 group-hover:scale-[1.02]">
+                        <MdTravelExplore size={48} className="text-[#287969]" />
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#17251F]/60 via-transparent to-[#17251F]/10" />
+
+                    <span
+                      className={`absolute left-4 top-4 rounded-full px-3 py-1.5 text-xs font-bold backdrop-blur-md ${
+                        trip.status === "COMPLETED"
+                          ? "bg-[#E2F0EB]/95 text-[#19483D]"
+                          : "bg-[#FFF1D8]/95 text-[#79551E]"
+                      }`}
+                    >
+                      {trip.status === "COMPLETED"
+                        ? "✓ Odwiedzona"
+                        : "Planowana"}
+                    </span>
+
+                    <div className="absolute inset-x-0 bottom-0 p-4 text-white text-shadow-sm text-shadow-black">
+                      <p className="flex items-center gap-1.5 text-sm font-semibold text-white/95">
+                        <MdCalendarMonth size={16} />
                         {formatDate(trip.startDate)} –{" "}
                         {formatDate(trip.endDate)}
                       </p>
+
+                      <h3 className="mt-1 text-xl font-extrabold tracking-tight ">
+                        {trip.title}
+                      </h3>
                     </div>
-                    <span className="shrink-0 rounded-full bg-[#F5F6EE] px-2 py-1 text-[11px] font-bold text-[#65746A]">
-                      {trip.status === "COMPLETED" ? "Historia" : "Plan"}
-                    </span>
-                  </div>
-                  <p className="line-clamp-2 text-sm text-[#65746A]">
-                    {trip.description || "Brak opisu podróży."}
-                  </p>
-                  {trip.checklist.length > 0 && (
-                    <p className="text-xs font-semibold text-[#65746A]">
-                      Przygotowania:{" "}
-                      {trip.checklist.filter((item) => item.completed).length}/
-                      {trip.checklist.length}
+                  </button>
+
+                  {/* Zawartość */}
+                  <div className="space-y-4 p-5">
+                    <p className="line-clamp-2 min-h-10 text-sm leading-5 text-[#65746A]">
+                      {trip.description || "Brak opisu podróży."}
                     </p>
-                  )}
-                  <div className="flex items-center justify-between gap-2 border-t border-[#E9EDE6] pt-3">
-                    <span className="flex min-w-0 items-center gap-1.5 truncate text-xs text-[#839087]">
-                      <FaMapPin size={16} />
-                      {trip.places.length
-                        ? `${trip.places.length} miejsc`
-                        : "Brak miejsc"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTripId(trip.id)}
-                      className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-[#287969]"
-                    >
-                      Szczegóły
-                      <MdArrowOutward size={16} />
-                    </button>
+
+                    {/* Przygotowania */}
+                    {checklistTotal > 0 && (
+                      <div className="rounded-2xl bg-[#F5F6EE] p-3.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs font-bold text-[#65746A]">
+                            Przygotowania
+                          </span>
+
+                          <span className="text-xs font-extrabold text-[#287969]">
+                            {checklistCompleted}/{checklistTotal}
+                          </span>
+                        </div>
+
+                        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[#DCE4D9]">
+                          <div
+                            className="h-full rounded-full bg-[#287969] transition-all"
+                            style={{ width: `${checklistProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stopka */}
+                    <div className="flex items-center justify-between gap-3 border-t border-[#E9EDE6] pt-4">
+                      <div className="flex min-w-0 items-center gap-2 text-sm text-[#65746A]">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E2F0EB]">
+                          <FaMapPin size={16} className="text-[#287969]" />
+                        </span>
+
+                        <span className="font-semibold">
+                          {trip.places.length}{" "}
+                          {trip.places.length === 1
+                            ? "miejsce"
+                            : trip.places.length >= 2 && trip.places.length <= 4
+                              ? "miejsca"
+                              : "miejsc"}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTripId(trip.id)}
+                        className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-[#287969] transition hover:bg-[#E2F0EB] hover:text-[#19483D]"
+                      >
+                        Szczegóły
+                        <MdArrowOutward
+                          size={17}
+                          className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
       {form && (
         <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-[#17251F]/40 p-4"
+          className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-[#17251F]/60 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setForm(null);
           }}
@@ -831,7 +1023,7 @@ export default function TravelPageContent() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="travel-form-title"
-            className="my-auto max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-[#FEFEFA] p-5 shadow-xl sm:p-6"
+            className="my-auto max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-[#FEFEFA] p-5 shadow-xl sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
