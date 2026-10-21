@@ -288,7 +288,7 @@ export default function FamilyPageContent() {
     <div className="space-y-7 pb-8">
       {/* Nagłówek i ilustracja */}
       <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE]">
-        <div className="relative z-10 grid items-center gap-5 px-6  sm:px-8 lg:min-h-[330px] lg:grid-cols-2 lg:px-10">
+        <div className="h-[230px] relative z-10 grid items-center gap-5 px-6  sm:px-8 lg:min-h-[330px] lg:grid-cols-2 lg:px-10">
           <div className="py-8">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
               <MdFamilyRestroom size={20} />

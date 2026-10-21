@@ -248,7 +248,7 @@ export default function CalendarPageContent() {
         <div className="pointer-events-none absolute -right-10 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
         <div className="pointer-events-none absolute -bottom-24 right-40 h-48 w-48 rounded-full bg-[#E2F0EB]" />
 
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="h-[230px] relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-2xl">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
               <MdCalendarMonth size={22} />
@@ -278,7 +278,7 @@ export default function CalendarPageContent() {
             alt="tasks"
             width={400}
             height={400}
-            className="h-full object-cover"
+            className="h-full object-contain"
           />
         </div>
       </section>

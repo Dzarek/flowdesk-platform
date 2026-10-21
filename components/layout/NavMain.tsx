@@ -6,7 +6,11 @@ import {
   RiLightbulbFlashFill,
   RiSettings4Fill,
 } from "react-icons/ri";
-import { MdFamilyRestroom } from "react-icons/md";
+import {
+  MdFamilyRestroom,
+  MdOutlineSolarPower,
+  MdSecurity,
+} from "react-icons/md";
 import { FaCalendarAlt, FaTasks, FaShoppingCart } from "react-icons/fa";
 import { ImTable } from "react-icons/im";
 import { FaUserDoctor, FaEarthAmericas, FaHouse } from "react-icons/fa6";
@@ -48,14 +52,14 @@ const mainNavigation: NavigationItem[] = [
   //   icon: FaUserDoctor,
   // },
   {
-    title: "Smart Dom",
-    href: "/dom",
-    icon: FaHouse,
+    title: "Bezpieczeństwo",
+    href: "/bezpieczenstwo",
+    icon: MdSecurity,
   },
   {
     title: "Energia",
     href: "/energia",
-    icon: RiLightbulbFlashFill,
+    icon: MdOutlineSolarPower,
   },
   {
     title: "Podróże",

@@ -1,0 +1,76 @@
+import type { HeatingData, SolarData, UtilityMeter } from "./types";
+
+export const mockHeating: HeatingData = {
+  deviceId: "boiler-1",
+  name: "Kocioł gazowy",
+  manufacturer: "Bosch",
+  model: "Condens",
+  status: "ONLINE",
+  roomTemperature: 21.5,
+  targetTemperature: 22,
+  boilerTemperature: 48,
+  mode: "AUTO",
+  heatingActive: true,
+  lastUpdated: "2026-10-21T20:30:00",
+};
+
+export const mockSolar: SolarData = {
+  deviceId: "inverter-1",
+  name: "Instalacja fotowoltaiczna",
+  manufacturer: "Falownik PV",
+  status: "ONLINE",
+  currentProductionKw: 0,
+  dailyProductionKwh: 12.8,
+  monthlyProductionKwh: 286.4,
+  homeConsumptionKw: 0.6,
+  gridImportKw: 0.6,
+  gridExportKw: 0,
+  dailyHistory: [
+    { time: "06:00", production: 0.1, consumption: 0.6 },
+    { time: "08:00", production: 0.8, consumption: 0.9 },
+    { time: "10:00", production: 1.8, consumption: 1.1 },
+    { time: "12:00", production: 3.2, consumption: 1.4 },
+    { time: "14:00", production: 2.8, consumption: 1.6 },
+    { time: "16:00", production: 1.4, consumption: 1.2 },
+    { time: "18:00", production: 0.3, consumption: 1.0 },
+  ],
+};
+
+export const mockUtilityMeters: UtilityMeter[] = [
+  {
+    id: "electricity-1",
+    name: "Licznik energii elektrycznej",
+    type: "ELECTRICITY",
+    unit: "kWh",
+    currentReading: 12840.6,
+    previousReading: 12690.2,
+    monthlyUsage: 150.4,
+    unitPrice: 1.05,
+    fixedMonthlyCost: 28,
+    lastReadingDate: "2026-10-21",
+  },
+  {
+    id: "gas-1",
+    name: "Licznik gazu",
+    type: "GAS",
+    unit: "m³",
+    currentReading: 3842.2,
+    previousReading: 3828.7,
+    monthlyUsage: 13.5,
+    unitPrice: 4.5,
+    fixedMonthlyCost: 25,
+    lastReadingDate: "2026-10-21",
+  },
+  {
+    id: "water-1",
+    name: "Licznik wody",
+    type: "WATER",
+    unit: "m³",
+    currentReading: 426.8,
+    previousReading: 423.6,
+    monthlyUsage: 3.2,
+    unitPrice: 15,
+    fixedMonthlyCost: 0,
+    lastReadingDate: "2026-10-21",
+  },
+];

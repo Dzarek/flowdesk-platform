@@ -337,13 +337,13 @@ export default function SchedulePageContent() {
         <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
         <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
 
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-10">
+        <div className="h-[230px] relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-10">
           <Image
             src="/images/scheduleHeader2.svg"
             alt="schedule"
             width={300}
             height={300}
-            className="h-full object-cover rotate-y-180"
+            className="h-full object-contain rotate-y-180"
           />
           <div className="max-w-2xl absolute top-1/2 left-1/2 -translate-1/2 flex flex-col items-center">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
@@ -373,7 +373,7 @@ export default function SchedulePageContent() {
             alt="schedule"
             width={330}
             height={330}
-            className="h-full object-cover"
+            className="h-full object-contain "
           />
         </div>
       </section>
