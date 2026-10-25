@@ -8,6 +8,7 @@ import {
 } from "react-icons/ri";
 import {
   MdFamilyRestroom,
+  MdOutlineContactPhone,
   MdOutlineSolarPower,
   MdSecurity,
 } from "react-icons/md";
@@ -46,11 +47,11 @@ const mainNavigation: NavigationItem[] = [
     href: "/harmonogram",
     icon: ImTable,
   },
-  // {
-  //   title: "Zdrowie",
-  //   href: "/zdrowie",
-  //   icon: FaUserDoctor,
-  // },
+  {
+    title: "Ważne kontakty",
+    href: "/kontakty",
+    icon: MdOutlineContactPhone,
+  },
   {
     title: "Bezpieczeństwo",
     href: "/bezpieczenstwo",
