@@ -6,7 +6,20 @@ const nextConfig = {
   trailingSlash: true,
 
   images: {
-    domains: ["res.cloudinary.com", "jarekjanas.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "jarekjanas.com",
+      },
+      {
+        protocol: "https",
+        hostname: "img.icons8.com",
+      },
+    ],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== "development",

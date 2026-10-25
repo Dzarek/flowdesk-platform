@@ -39,7 +39,7 @@ const mainNavigation: NavigationItem[] = [
   },
   {
     title: "Zakupy",
-    href: "/dashboard/zakupy",
+    href: "/zakupy",
     icon: FaShoppingCart,
   },
   {

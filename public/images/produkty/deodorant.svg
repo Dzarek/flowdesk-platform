@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="185.63mm" height="297mm" clip-rule="evenodd" fill-rule="evenodd" image-rendering="optimizeQuality" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" version="1.1" viewBox="0 0 18563 29700" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style type="text/css">.fil6 {fill:#434242} .fil3 {fill:#5B5B5B} .fil5 {fill:#C5C6C6} .fil7 {fill:#D9DADA} .fil4 {fill:#FFED00} .fil0 {fill:url(#d)} .fil2 {fill:url(#e)} .fil1 {fill:url(#f)}</style>
+  <linearGradient id="d" x1="1590.3" x2="16848" y1="2809.1" y2="11618" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#FEFEFE" offset="0"/>
+   <stop stop-color="#B2B3B3" offset="1"/>
+  </linearGradient>
+  <linearGradient id="e" x1="8742.1" x2="14668" y1="19799" y2="23220" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#6F0000" offset="0"/>
+   <stop stop-color="#C83E22" offset=".078431"/>
+   <stop stop-color="#FF9760" offset=".16078"/>
+   <stop stop-color="#fff" offset=".23922"/>
+   <stop stop-color="#FF6728" offset=".54902"/>
+   <stop stop-color="#CC2900" offset=".81176"/>
+   <stop stop-color="#9F1D2C" offset=".92157"/>
+   <stop stop-color="#6D091D" offset="1"/>
+  </linearGradient>
+  <radialGradient id="f" cx="43%" cy="23%">
+   <stop stop-color="#EBECEC" offset="0"/>
+   <stop stop-color="#56698F" offset="1"/>
+  </radialGradient>
+ </defs>
+ <path class="fil0" d="m16800 11591c-5600-1973-11200-3946-16800-5918 3012-686 3999-2642 3275-5673l13525 11591z"/>
+ <path class="fil1" d="m17020 12305c1442 832 1936 2676 1103 4118-832 1442-2676 1937-4118 1104s-1936-2677-1104-4119c833-1442 2677-1936 4119-1103z"/>
+ <path class="fil2" d="m13053 12992c1048 1782 2816 2830 5355 3092-99 170 29 470-70 640-2442 4231-4884 8461-7327 12691-2280-10-4526-1281-5805-3352 2453-4248 4874-8443 7327-12690 88-153 432-228 520-381z"/>
+ <path class="fil3" d="m11030 29382l-183 318c-2281-10-4526-1281-5806-3352l184-318c1279 2071 3525 3342 5805 3352z"/>
+ <path class="fil4" d="m9980 22386c-672-400-1260-966-1691-1663l2618-4534c430 697 1018 1264 1690 1664l-2617 4533z"/>
+ <path class="fil4" d="m13280 12783c1242 1924 3038 2809 5195 2999 94 9 110 153 63 234-47 82-140 69-234 63-2216-142-4021-1017-5195-2999-48-81-110-152-63-234s183-142 234-63z"/>
+ <path class="fil5" d="m16942 11173c235 355 597 573 1096 633-260 451-348 603-608 1054-473-25-848-219-1096-633 260-451 348-603 608-1054z"/>
+ <path class="fil6" d="m16854 11374c96 55 128 177 73 272s-176 128-272 73c-7-4-14-9-20-14l197-342c8 4 15 7 22 11z"/>
+ <ellipse class="fil7" transform="matrix(2.0707 1.1955 -1.1955 2.0706 17475 11516)" rx="265" ry="68"/>
+</svg>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="540" enable-background="new 0 0 595.28 841.89" viewBox="0 0 299.99999 540" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <path id="a" d="m412.78 120.11c-0.111-3.59-2.565-7.259-10.118-7.552-4.456-0.099-214.03-6.713-214.03-6.713-3.064-0.029-6.272 0.765-6.272 6.119 0 2.744-0.048 25.391-0.048 25.391s-63.019 132.9-64.946 136.85-1.445 4.57-1.465 7.048 14.917 405.9 14.917 405.9l175.08 78.43c11.241 4.903 13.797 1.932 15.845 0l98.234-102.99s31.566-390.57 31.937-394.92 0.014-7.93-0.702-11.466c-0.775-3.829-1.81-8.096-2.714-10.315-0.158-0.388-36.442-97.047-36.442-97.047l0.725-28.733z"/>
+  <clipPath id="d">
+   <use width="595.28003" height="841.89001" xlink:href="#a"/>
+  </clipPath>
+  <clipPath id="b" clip-path="url(#d)">
+   <use width="595.28003" height="841.89001" xlink:href="#a"/>
+  </clipPath>
+  <linearGradient id="c" x1="453.21" x2="395.96" y1="196.51" y2="219.03" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fefded" offset=".3525"/>
+   <stop stop-color="#ccd0b8" offset=".8574"/>
+  </linearGradient>
+ </defs>
+ <g transform="matrix(.83074 0 0 .78484 -85.753 -71.278)">
+  <path d="m426.78 679.68 35.648-438.47-43.966-125.96-87.932 181.8-23.765 503.82z" clip-path="url(#b)" fill="#fdfce6" stroke="#e7e7e7" stroke-width=".7922"/>
+  <path d="m428.96 99.854-16.899 48.984-77.11 162.27-19.013 472.16-194.54-89.333-15.447-428.96 65.354-135.46 2.377-34.46z" clip-path="url(#b)" fill="#d6dbcc" stroke="#e7e7e7" stroke-width=".7922"/>
+  <path d="m425.13 109.23-255.89-14.26 9.111 40.799 234.89 12.676z" clip-path="url(#b)" fill="#c9cebe"/>
+  <use width="595.28003" height="841.89001" fill="none" stroke="#e7e7e7" stroke-width=".7922" xlink:href="#a"/>
+  <use width="595.28003" height="841.89001" fill="none" stroke="#e7e7e7" stroke-width=".7922" xlink:href="#a"/>
+  <path d="m448.3 256.39-62.019-44.712-44.711 94.831z" fill="#eaedd0"/>
+  <path d="m449.25 254.8-37.19-98.835-24.948 54.157z" fill="url(#c)"/>
+  <path d="m116.03 277.57 218.92 33.538" fill="#e7e7e7" stroke="#e7e7e7" stroke-width="1.5844"/>
+ </g>
+ <text x="237.20547" y="605.23132" font-family="Bitstream Vera Sans" font-size="40">
+  <tspan x="237.20547" y="605.23132"/>
+ </text>
+</svg>
