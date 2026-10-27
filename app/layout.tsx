@@ -4,6 +4,15 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
+import { Doppio_One } from "next/font/google";
+
+export const doppioOne = Doppio_One({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-doppio-one", // opcjonalna zmienna CSS
+  display: "swap",
+});
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="pl" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${quicksand.variable} ${inter.variable} ${manrope.variable} antialiased`}
+        className={`${geistSans.variable} ${doppioOne.variable} ${quicksand.variable} ${inter.variable} ${manrope.variable} antialiased`}
       >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
