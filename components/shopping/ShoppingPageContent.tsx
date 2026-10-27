@@ -123,8 +123,15 @@ export default function ShoppingPageContent() {
         <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
         <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
 
-        <div className="relative flex h-[230px] flex-col justify-center gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative z-10 max-w-xl">
+        <div className="relative flex h-[230px] flex-col justify-center gap-5 sm:flex-row sm:items-center sm:justify-between px-10">
+          <Image
+            src="/images/shop.svg"
+            alt="schedule"
+            width={300}
+            height={300}
+            className="h-full object-contain rotate-y-180"
+          />
+          <div className="relative z-10 max-w-xl flex flex-col items-center">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#287969] text-white">
               <FiShoppingCart size={24} />
             </div>
@@ -180,24 +187,31 @@ export default function ShoppingPageContent() {
                 {pendingProducts.length} produktów do kupienia
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              disabled={loading}
-              aria-label="Odśwież listę zakupów"
-              className="cursor-pointer rounded-xl border border-[#DCE4D9] p-3 text-[#287969] transition hover:bg-[#E2F0EB] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <FiRefreshCw size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={handleClearList}
-              disabled={clearing || products.length === 0}
-              className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DCE4D9] px-3 py-2 text-sm text-[#839087] transition hover:bg-[#F5F6EE] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {clearing ? <FiLoader className="animate-spin" /> : <FiTrash2 />}
-              <span className="hidden sm:inline">Wyczyść</span>
-            </button>
+
+            <div className="flex items-center gap-5">
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={loading}
+                aria-label="Odśwież listę zakupów"
+                className="cursor-pointer rounded-xl border border-[#DCE4D9] p-3 text-[#287969] transition hover:bg-[#E2F0EB] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <FiRefreshCw size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={handleClearList}
+                disabled={clearing || products.length === 0}
+                className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DCE4D9] px-3 py-2 text-sm text-[#839087] transition hover:bg-[#F5F6EE] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {clearing ? (
+                  <FiLoader className="animate-spin" />
+                ) : (
+                  <FiTrash2 />
+                )}
+                <span className="hidden sm:inline">Wyczyść</span>
+              </button>
+            </div>
           </div>
 
           {loading ? (

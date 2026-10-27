@@ -67,11 +67,11 @@ const mainNavigation: NavigationItem[] = [
     href: "/podroze",
     icon: FaEarthAmericas,
   },
-  {
-    title: "Ustawienia",
-    href: "/ustawienia",
-    icon: RiSettings4Fill,
-  },
+  // {
+  //   title: "Ustawienia",
+  //   href: "/ustawienia",
+  //   icon: RiSettings4Fill,
+  // },
 ];
 
 const NavMain = () => {

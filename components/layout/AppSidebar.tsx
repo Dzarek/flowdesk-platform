@@ -9,6 +9,7 @@ import { MdLogout, MdSettings } from "react-icons/md";
 import ThemeToggle from "./ThemeToggle";
 import NavMain from "./NavMain";
 import LogoNav from "./LogoNav";
+import { RiSettings4Fill } from "react-icons/ri";
 
 type UserRole = "USER" | "ADMIN";
 
@@ -119,30 +120,24 @@ export default function AppSidebar({
         {/* Navigation */}
 
         <NavMain />
-
         {/* Administracja */}
         <div className="">
+          <Link
+            href="/ustawienia"
+            className={`flex items-center gap-4 p-4 py-2.5 hover:bg-zinc-900 hover:text-white duration-300 rounded-lg ${pathname === "/ustawienia" ? "bg-[#5b755b] text-white" : "bg-zinc-200 text-[#31513a]"} `}
+          >
+            <RiSettings4Fill />
+            <span className="text-sm"> Ustawienia</span>
+          </Link>
           {role === "ADMIN" && (
-            <div className="mt-8 pt-2 xl:mt-3 mb-2">
-              <Link
-                href="/admin"
-                onClick={handleNavigation}
-                className={`
-                      flex items-center gap-3 rounded-lg
-                      px-4 py-2 text-sm font-medium
-                      transition-colors uppercase
-
-                      ${
-                        pathname === "/admin"
-                          ? "bg-white/15 text-white"
-                          : "text-slate-300 hover:bg-white/10 hover:text-white"
-                      }
-                    `}
-              >
-                <FaDatabase size={18} />
-                Panel Admina
-              </Link>
-            </div>
+            <Link
+              href="/admin"
+              onClick={handleNavigation}
+              className={`flex mt-2 items-center gap-4 p-4 py-2.5 hover:bg-zinc-900 hover:text-white duration-300 rounded-lg ${pathname === "/admin" ? "bg-[#5b755b] text-white" : "bg-zinc-200 text-[#31513a]"} `}
+            >
+              <FaDatabase />
+              <span className="text-sm">Panel Admina</span>
+            </Link>
           )}
           {/* Mobile user */}
 
@@ -179,8 +174,8 @@ export default function AppSidebar({
           </div>
           {/* Bottom */}
 
-          <div className="border-t border-white/10 pt-3">
-            <p className="mt-6 text-center text-sm italic font-semibold text-[#667666]">
+          <div className="border-t border-white/10 pt-3 mt-5">
+            <p className="mt-4 text-center text-sm italic font-semibold text-[#667666]">
               Jedna przestrzeń - Cała rodzina
             </p>
           </div>
