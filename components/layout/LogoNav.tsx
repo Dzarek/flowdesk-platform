@@ -4,11 +4,11 @@ const LogoNav = ({}: { colors?: string[] }) => {
   return (
     <div className="flex gap-1 items-center justify-center">
       <Image
-        src="/logo3.png"
+        src="/logo6.png"
         alt="logo"
         width={100}
         height={100}
-        className="object-contain w-16 h-16 min-[1600px]:w-16 min-[1600px]:h-16"
+        className="object-contain w-16 h-16 min-[1600px]:w-20 min-[1600px]:h-20"
       />
       <div className="flex flex-col  text-2xl  tracking-wider">
         <h1 className="font-[family-name:var(--font-doppio-one)] text-[28px] tracking-wider font-semibold">

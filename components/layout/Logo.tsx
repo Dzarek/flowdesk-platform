@@ -4,7 +4,7 @@ const Logo = ({ colors = ["#fff", "#fff", "#fff"] }: { colors?: string[] }) => {
   return (
     <div className="flex mx-auto gap-2 min-[1600px]:gap-4 items-center justify-center">
       <Image
-        src="/logo.png"
+        src="/logo6.png"
         alt="logo"
         width={100}
         height={100}

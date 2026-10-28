@@ -124,7 +124,7 @@ export default function AppSidebar({
         <div className="">
           <Link
             href="/ustawienia"
-            className={`flex items-center gap-4 p-4 py-2.5 hover:bg-zinc-900 hover:text-white duration-300 rounded-lg ${pathname === "/ustawienia" ? "bg-[#5b755b] text-white" : "bg-zinc-200 text-[#31513a]"} `}
+            className={`flex items-center gap-4 font-semibold p-4 py-2.5 hover:bg-[#111] hover:text-white duration-300 rounded-lg ${pathname === "/ustawienia" ? "bg-[#5b755b] text-white" : "bg-zinc-200 text-[#31513a]"} `}
           >
             <RiSettings4Fill />
             <span className="text-sm"> Ustawienia</span>
@@ -133,7 +133,7 @@ export default function AppSidebar({
             <Link
               href="/admin"
               onClick={handleNavigation}
-              className={`flex mt-2 items-center gap-4 p-4 py-2.5 hover:bg-zinc-900 hover:text-white duration-300 rounded-lg ${pathname === "/admin" ? "bg-[#5b755b] text-white" : "bg-zinc-200 text-[#31513a]"} `}
+              className={`flex mt-2 items-center font-semibold gap-4 p-4 py-2.5 hover:bg-[#111] hover:text-white duration-300 rounded-lg ${pathname === "/admin" ? "bg-[#5b755b] text-white" : "bg-zinc-200 text-[#31513a]"} `}
             >
               <FaDatabase />
               <span className="text-sm">Panel Admina</span>
