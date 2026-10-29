@@ -5,6 +5,7 @@ export type FamilyMember = {
   name: string;
   email: string;
   role: FamilyMemberRole;
+  roleDescription: string;
   img: string | null;
   color: string;
   joinedAt: string;

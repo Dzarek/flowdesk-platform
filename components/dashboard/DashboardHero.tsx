@@ -94,14 +94,19 @@ export default function DashboardHero({ data }: DashboardHeroProps) {
               </div>
             )}
 
-            <Image
-              src={isSpeaking ? "/images/robot2.png" : "/images/robot1.png"}
-              alt={isSpeaking ? "Robot mówi" : "Robot w spoczynku"}
-              width={160}
-              height={180}
-              className="relative z-10 h-auto w-full object-contain cursor-pointer"
-              priority
-            />
+            <div
+              key={isSpeaking ? "speaking" : "idle"}
+              className="ai-image-enter relative z-10 w-full"
+            >
+              <Image
+                src={isSpeaking ? "/images/ai1.png" : "/images/ai2.png"}
+                alt={isSpeaking ? "AI mówi" : "AI w spoczynku"}
+                width={160}
+                height={180}
+                className="h-auto w-full cursor-pointer object-contain"
+                priority
+              />
+            </div>
             <span className="text-[9px]">
               {isSpeaking ? "kliknij aby zatrzymać" : "kliknij aby odsłuchać"}
             </span>

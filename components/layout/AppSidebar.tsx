@@ -71,12 +71,12 @@ export default function AppSidebar({
 
       <aside
         className={`
-    fixed left-0 top-0 z-50
+    fixed left-0 top-0 z-30
     flex h-screen w-screen flex-col
     bg-[var(--greenBg)] pl-6 pr-0 py-6 text-slate-100
     transition-transform duration-300
     overflow-y-auto sidebar-scroll
-    lg:z-30
+    
     lg:w-[260px]
     lg:translate-x-0
     ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
