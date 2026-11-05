@@ -6,7 +6,6 @@ import { signOut } from "next-auth/react";
 import { FaDatabase, FaWindowClose } from "react-icons/fa";
 import { MdLogout, MdSettings } from "react-icons/md";
 
-import ThemeToggle from "./ThemeToggle";
 import NavMain from "./NavMain";
 import LogoNav from "./LogoNav";
 import { RiSettings4Fill } from "react-icons/ri";
@@ -63,7 +62,7 @@ export default function AppSidebar({
           type="button"
           aria-label="Zamknij menu"
           onClick={onMobileClose}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0  lg:hidden"
         />
       )}
 
@@ -73,10 +72,9 @@ export default function AppSidebar({
         className={`
     fixed left-0 top-0 z-30
     flex h-screen w-screen flex-col
-    bg-[var(--greenBg)] pl-6 pr-0 py-6 text-slate-100
+    bg-[var(--greenBg)] pl-6 pr-6 xl:pr-0 py-6 text-slate-100
     transition-transform duration-300
     overflow-y-auto sidebar-scroll
-    
     lg:w-[260px]
     lg:translate-x-0
     ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
@@ -119,7 +117,7 @@ export default function AppSidebar({
 
         {/* Navigation */}
 
-        <NavMain />
+        <NavMain handleNavigation={handleNavigation} />
         {/* Administracja */}
         <div className="">
           <Link

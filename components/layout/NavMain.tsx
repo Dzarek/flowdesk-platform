@@ -74,7 +74,7 @@ const mainNavigation: NavigationItem[] = [
   // },
 ];
 
-const NavMain = () => {
+const NavMain = ({ handleNavigation }: { handleNavigation: () => void }) => {
   const pathname = usePathname();
   return (
     <ul className="flex-1 overflow-y-auto pr-3 flex flex-col gap-1 min-[1600px]:gap-2  mt-3 mb-20 text-zinc-100 tracking-wider">
@@ -83,6 +83,7 @@ const NavMain = () => {
           <Link
             key={item.href}
             href={item.href}
+            onClick={handleNavigation}
             className={`flex items-center gap-4 p-4 py-2.5 hover:bg-[#31513a]/40 duration-300 rounded-lg ${pathname === item.href + "/" ? "bg-[#5b755b]" : "bg-[#31513a]/10"} `}
           >
             {<item.icon />}

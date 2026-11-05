@@ -43,6 +43,7 @@
   /* --greenBg: #172520; */
   --greenBg: #0f1815;
   --greenText: #345248;
+  --greenTextLight: #4c7868;
 }
 
 @theme inline {
@@ -87,8 +88,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --greenBg: #172520;
-  --greenText: #263d35;
+  --greenBg: #0f1815;
+  --greenText: #345248;
+  --greenTextLight: #4c7868;
 }
 
 body {
@@ -96,8 +98,9 @@ body {
 }
 
 .dark {
-  --greenBg: oklch(24.977% 0.02151 170.394);
-  --greenText: #263d35;
+  --greenBg: #0f1815;
+  --greenText: #345248;
+  --greenTextLight: #4c7868;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

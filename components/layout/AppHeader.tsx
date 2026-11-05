@@ -123,11 +123,26 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
   };
 
   return (
-    <header className="relative z-10 mb-4 flex h-16 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]  px-3 text-[#263C35] shadow-sm sm:px-5 lg:h-[72px] lg:px-10">
+    <header className="relative z-10 mb-4 flex h-16 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA]  px-3 text-[#263C35] shadow-sm sm:px-5 lg:h-[72px] lg:px-10 ">
       <div className="absolute rounded-2xl inset-0 -z-10 bg-gradient-to-br from-[#244C3B]/20 via-[#E8E2D5]/60 to-[#244C3B]/20 " />
 
       {/* Lewa strona */}
       <div className="flex flex-1 min-w-0 shrink-0 items-center gap-3">
+        {/* Hamburger mobile */}
+
+        <button
+          type="button"
+          onClick={onMobileMenuOpen}
+          aria-label="Otwórz menu"
+          className="
+            flex size-10 shrink-0 items-center justify-center
+            rounded-xl text-[var(--greenText)]
+            transition hover:bg-white/10 hover:text-black
+            lg:hidden
+          "
+        >
+          <MdMenu size={21} />
+        </button>
         {/* Wyszukiwarka */}
         <form
           onSubmit={handleSearch}
@@ -168,7 +183,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
       </div>
 
       {/* Prawa strona */}
-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3 ">
         {/* Powiadomienia */}
         <div ref={notificationsRef} className="relative">
           <button
@@ -250,7 +265,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
             aria-label="Menu użytkownika"
             className="group flex items-center gap-2 rounded-xl border border-transparent px-1.5 py-1.5 transition hover:border-[#DCE4D9] hover:bg-[#F5F6EE] sm:gap-3 sm:px-2"
           >
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[#E2F0EB] text-[#287969] ring-1 ring-[#287969]/10">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-[#E2F0EB] text-[var(--greenText)] ring-1 ring-[#287969]/10">
               <FaUser size={15} />
             </div>
 
@@ -272,7 +287,7 @@ export default function AppHeader({ user, onMobileMenuOpen }: AppHeaderProps) {
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute right-0 top-full mt-3 w-60 overflow-hidden rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-2 shadow-xl shadow-[#19483D]/10">
+            <div className="absolute right-0 top-full mt-3 w-60 overflow-hidden rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-2 shadow-xl shadow-[#19483D]/10 z-150">
               <div className="border-b border-[#DCE4D9] px-3 py-3">
                 <p className="truncate text-sm font-semibold text-[#19483D]">
                   {user.name}

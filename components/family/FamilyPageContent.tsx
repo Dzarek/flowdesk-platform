@@ -15,6 +15,7 @@ import {
   MdPersonAddAlt1,
   MdSearch,
   MdPeopleOutline,
+  MdEdit,
 } from "react-icons/md";
 
 import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
@@ -78,17 +79,17 @@ function StatCard({
   iconColor: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4">
+    <div className="flex min-w-0 items-center justify-center gap-2 xl:gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-3 xl:p-4">
       <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconBg} ${iconColor}`}
+        className={`flex h-10 w-10 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-full ${iconBg} ${iconColor}`}
       >
-        <Icon size={25} />
+        <Icon className="size-5 xl:size-7" />
       </div>
 
+      <p className="text-xl xl:text-2xl font-extrabold leading-none text-[#263C35]">
+        {value}
+      </p>
       <div className="min-w-0">
-        <p className="text-2xl font-extrabold leading-none text-[#263C35]">
-          {value}
-        </p>
         <p className="mt-1 text-sm text-[#839087]">{label}</p>
       </div>
     </div>
@@ -121,9 +122,15 @@ function MemberAvatar({ member }: { member: FamilyMember }) {
 function MemberCard({
   member,
   onDelete,
+  onEdit,
+  canEdit,
+  isFamilyAdmin,
 }: {
   member: FamilyMember;
   onDelete: (member: FamilyMember) => void;
+  onEdit: (member: FamilyMember) => void;
+  canEdit: boolean;
+  isFamilyAdmin: boolean;
 }) {
   const RoleIcon = roleIcons[member.role];
 
@@ -144,20 +151,31 @@ function MemberCard({
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onDelete(member)}
-          disabled={member.isCurrentUser}
-          aria-label={`Usuń członka: ${member.name}`}
-          title={
-            member.isCurrentUser
-              ? "Nie możesz usunąć własnego profilu"
-              : "Usuń członka"
-          }
-          className="rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <MdDeleteOutline size={21} />
-        </button>
+        <div className="flex items-center gap-1">
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => onEdit(member)}
+              aria-label={`Edytuj profil: ${member.name}`}
+              title="Edytuj profil"
+              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-[#E2F0EB] hover:text-[#287969]"
+            >
+              <MdEdit size={20} />
+            </button>
+          )}
+
+          {isFamilyAdmin && !member.isCurrentUser && (
+            <button
+              type="button"
+              onClick={() => onDelete(member)}
+              aria-label={`Usuń członka: ${member.name}`}
+              title="Usuń członka"
+              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
+            >
+              <MdDeleteOutline size={21} />
+            </button>
+          )}
+        </div>
       </div>
 
       <h3 className="mt-5 truncate text-lg font-extrabold text-[#263C35]">
@@ -200,6 +218,7 @@ export default function FamilyPageContent() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"ADULT" | "CHILD">("ADULT");
   const [inviteMessage, setInviteMessage] = useState("");
+  const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [mockInvitations, setMockInvitations] = useState<
     { id: string; email: string; role: "ADULT" | "CHILD"; status: "PENDING" }[]
   >([]);
@@ -246,6 +265,8 @@ export default function FamilyPageContent() {
 
   function closeModal() {
     setIsModalOpen(false);
+    setEditingMember(null);
+    setPhotoPreview(null);
     setError("");
   }
 
@@ -344,34 +365,103 @@ export default function FamilyPageContent() {
 
     setIsInviteModalOpen(false);
   }
+
+  const currentUser = members.find((member) => member.isCurrentUser);
+  const isFamilyAdmin = currentUser?.role === "HEAD";
+
+  const canEditMember = (member: FamilyMember) => {
+    return isFamilyAdmin || (member.isCurrentUser && member.role === "ADULT");
+  };
+
+  function openEditModal(member: FamilyMember) {
+    if (!canEditMember(member)) return;
+
+    setEditingMember(member);
+
+    setForm({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      roleDescription: member.roleDescription,
+    });
+
+    setPhotoPreview(member.img ?? null);
+    setError("");
+    setIsModalOpen(true);
+  }
+
+  function handleUpdateMember(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!editingMember || !canEditMember(editingMember)) return;
+
+    const name = form.name.trim();
+    const email = form.email.trim().toLowerCase();
+    const roleDescription = form.roleDescription.trim();
+
+    if (!name || !email || !roleDescription) {
+      setError("Uzupełnij wszystkie wymagane pola.");
+      return;
+    }
+
+    const emailExists = members.some(
+      (member) =>
+        member.id !== editingMember.id && member.email.toLowerCase() === email,
+    );
+
+    if (emailExists) {
+      setError("Członek z takim adresem e-mail już istnieje.");
+      return;
+    }
+
+    setMembers((current) =>
+      current.map((member) =>
+        member.id === editingMember.id
+          ? {
+              ...member,
+              name,
+              email,
+              roleDescription,
+              img: photoPreview,
+              role: isFamilyAdmin ? form.role : member.role,
+            }
+          : member,
+      ),
+    );
+
+    closeModal();
+  }
+
   return (
-    <div className="space-y-7 pb-8">
+    <div className="space-y-7 xl:pb-6">
       {/* Nagłówek i ilustracja */}
       <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE]">
-        <div className="h-[230px] relative z-10 grid items-center gap-5 px-6  sm:px-8 lg:min-h-[330px] lg:grid-cols-2 lg:px-10">
+        <div className="xl:h-[230px] relative z-10 grid items-center gap-5 px-4  sm:px-8 lg:min-h-[330px] lg:grid-cols-2 lg:px-10">
           <div className="py-8">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
+            <div className="mb-4 flex items-center ml-2 xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
               <MdFamilyRestroom size={20} />
               <span>Rodzina</span>
             </div>
 
-            <h1 className="text-4xl font-bold tracking-tight text-[#19483D] sm:text-5xl">
-              Nasza rodzina
+            <h1 className="text-3xl uppercase text-center xl:text-left font-bold tracking-tight text-[var(--greenText)] sm:text-4xl">
+              Nasza Rodzina
             </h1>
 
-            <p className="mt-4 max-w-lg text-base leading-7 text-[#718078] ">
+            <p className="mt-4 text-center xl:text-left max-w-lg text-base leading-7 text-[#718078] ">
               Wspólne obowiązki, plany i ważne chwile. Zarządzaj członkami
               rodziny i budujcie razem lepiej zorganizowany dom.
             </p>
 
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <StatCard
-                icon={MdPeopleOutline}
-                value={members.length}
-                label="Osoby"
-                iconBg="bg-[#E4EEDC]"
-                iconColor="text-[#287969]"
-              />
+            <div className="mt-6 flex flex-wrap justify-center xl:justify-start gap-2 xl:gap-3">
+              <div className="w-[60%] xl:w-auto">
+                <StatCard
+                  icon={MdPeopleOutline}
+                  value={members.length}
+                  label="Osoby"
+                  iconBg="bg-[#E4EEDC]"
+                  iconColor="text-[#287969]"
+                />
+              </div>
               <StatCard
                 icon={MdOutlinePerson}
                 value={adults}
@@ -402,9 +492,9 @@ export default function FamilyPageContent() {
       </section>
 
       {/* Lista członków */}
-      <section className="rounded-3xl border border-[#E4E9E0] bg-[#FEFEFA] p-4 sm:p-6 lg:p-7">
+      <section className="rounded-3xl border border-[#E4E9E0] bg-[#FEFEFA] p-4 sm:p-6 py-10 xl:py-6 lg:p-7">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 justify-center xl:justify-start">
             {(
               [
                 ["ALL", `Wszyscy (${members.length})`],
@@ -416,7 +506,7 @@ export default function FamilyPageContent() {
                 key={value}
                 type="button"
                 onClick={() => setFilter(value)}
-                className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+                className={`rounded-full px-3 xl:px-5 py-3 text-sm font-semibold transition ${
                   filter === value
                     ? "bg-[var(--greenText)] text-white"
                     : "bg-[#F3F5EF] text-[#38544A] hover:bg-[#E8EEE5]"
@@ -448,6 +538,9 @@ export default function FamilyPageContent() {
                 key={member.id}
                 member={member}
                 onDelete={setMemberToDelete}
+                onEdit={openEditModal}
+                canEdit={canEditMember(member) || false}
+                isFamilyAdmin={isFamilyAdmin}
               />
             ))}
           </div>
@@ -510,7 +603,7 @@ export default function FamilyPageContent() {
           </div>
         )}
         {/* Panel dodawania */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col xl:flex-row items-center mt-10 xl:gap-4">
           <button
             type="button"
             onClick={openModal}
@@ -521,7 +614,7 @@ export default function FamilyPageContent() {
             </span>
 
             <span className="min-w-0 flex-1">
-              <span className="block font-bold text-[#19483D]">
+              <span className="block font-bold text-[var(--greenText)]">
                 Dodaj nowego członka rodziny
               </span>
               <span className="mt-1 block text-sm text-[#839087]">
@@ -566,7 +659,7 @@ export default function FamilyPageContent() {
             aria-labelledby="family-modal-title"
             className="my-auto w-full max-w-lg rounded-3xl bg-[#FEFEFA] p-6 shadow-xl sm:p-8"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col-reverse xl:flex-row items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-[#287969]">
                   Twoje gospodarstwo domowe
@@ -575,7 +668,7 @@ export default function FamilyPageContent() {
                   id="family-modal-title"
                   className="mt-1 text-2xl font-extrabold text-[#19483D]"
                 >
-                  Dodaj członka rodziny
+                  {editingMember ? "Edytuj profil" : "Dodaj członka rodziny"}
                 </h2>
               </div>
 
@@ -583,13 +676,16 @@ export default function FamilyPageContent() {
                 type="button"
                 onClick={closeModal}
                 aria-label="Zamknij"
-                className="rounded-xl p-2 text-[#718078] hover:bg-[#F0F3EB]"
+                className="rounded-xl ml-auto p-2 text-[#718078] hover:bg-[#F0F3EB]"
               >
                 <MdClose size={22} />
               </button>
             </div>
 
-            <form onSubmit={handleAddMember} className="mt-7 space-y-5">
+            <form
+              onSubmit={editingMember ? handleUpdateMember : handleAddMember}
+              className="mt-7 space-y-5"
+            >
               <div>
                 <label
                   htmlFor="member-name"
@@ -729,6 +825,7 @@ export default function FamilyPageContent() {
                 </label>
                 <select
                   id="member-role"
+                  disabled={!isFamilyAdmin}
                   value={form.role}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -780,10 +877,19 @@ export default function FamilyPageContent() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
                 >
-                  <MdAdd size={20} />
-                  Dodaj członka
+                  {editingMember ? (
+                    <>
+                      <MdEdit size={20} />
+                      Zapisz zmiany
+                    </>
+                  ) : (
+                    <>
+                      <MdAdd size={20} />
+                      Dodaj członka
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -884,17 +990,6 @@ export default function FamilyPageContent() {
                   {inviteMessage}
                 </p>
               )}
-
-              <div className="rounded-2xl bg-[#F5F6EE] p-4 text-sm leading-6 text-[#64746D]">
-                <p className="font-semibold text-[#38544A]">
-                  Jak to będzie działać?
-                </p>
-                <p className="mt-1">
-                  Po wdrożeniu zaproszeń osoba otrzyma wiadomość e-mail z
-                  linkiem. Na razie zapisujemy zaproszenie tylko
-                  demonstracyjnie.
-                </p>
-              </div>
 
               <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                 <button
