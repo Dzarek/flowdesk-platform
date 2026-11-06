@@ -149,8 +149,8 @@ export default function AuthForm() {
       >
         {/* PRZEDNIA STRONA KARTY */}
 
-        <div className="group relative flex min-h-[420px] flex-col items-center justify-center overflow-hidden rounded-[28px] border border-white/70 bg-[#F3F2E9]/95 p-6 shadow-[0_20px_70px_-25px_rgba(36,76,59,0.22)] backdrop-blur-xl [grid-area:1/1] [backface-visibility:hidden] sm:p-8">
-          <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-[#DCE7D9]/60 blur-2xl transition-transform duration-700 group-hover:scale-125" />
+        <div className="group relative flex min-h-[420px] flex-col items-center justify-center overflow-hidden rounded-[28px] border border-white/70 bg-[#FFFEFA]/70 p-6 shadow-[0_20px_70px_-25px_rgba(36,76,59,0.22)] backdrop-blur-xl [grid-area:1/1] [backface-visibility:hidden] sm:p-8">
+          {/* <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-[#DCE7D9]/60 blur-2xl transition-transform duration-700 group-hover:scale-125" /> */}
 
           <Image
             src="/images/login.svg"
@@ -182,7 +182,7 @@ export default function AuthForm() {
 
         {/* TYLNA STRONA KARTY — FORMULARZ */}
 
-        <div className="rounded-[28px] border border-white/70 bg-[#F3F2E9]/95 p-5 shadow-[0_20px_70px_-25px_rgba(36,76,59,0.22)] backdrop-blur-xl [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-7">
+        <div className="rounded-[28px] border border-white/70 bg-[#FFFEFA]/70 p-5 shadow-[0_20px_70px_-25px_rgba(36,76,59,0.22)] backdrop-blur-xl [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-7">
           <div className="mb-1 flex justify-start">
             <button
               type="button"

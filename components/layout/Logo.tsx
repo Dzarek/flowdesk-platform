@@ -11,11 +11,12 @@ const Logo = ({ colors = ["#fff", "#fff", "#fff"] }: { colors?: string[] }) => {
         className="object-contain w-17 h-17 min-[1600px]:w-24 min-[1600px]:h-24"
       />
       <div className="flex flex-col text-3xl min-[1600px]:text-5xl  tracking-wider">
-        <h1 className={`text-[${colors[0]}] font-extrabold font-serif`}>
-          Life<span className={`text-[${colors[1]}]`}>Hub</span>
+        <h1 className="font-[family-name:var(--font-doppio-one)] text-[28px] tracking-wider font-semibold">
+          <span className="text-[#eae3d0]">Life</span>
+          <span className="text-[#819B72]">Hub</span>
         </h1>
         <span
-          className={`text-[${colors[2]}] text-[11px] min-[1600px]:text-base tracking-normal uppercase`}
+          className={`text-[#FFFEFA] text-sm min-[1600px]:text-base tracking-normal uppercase`}
         >
           Domowe Centrum Operacji
         </span>
