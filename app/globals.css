@@ -207,3 +207,30 @@ button:disabled {
     animation: none;
   }
 }
+
+.orbit {
+  position: absolute;
+  top: 50%;
+  right: -65px;
+  width: 130px;
+  height: 130px;
+  transform: translateY(-50%);
+}
+
+.orbit-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -22px;
+  animation: orbit 22.5s linear infinite;
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateX(130px) rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg) translateX(130px) rotate(-360deg);
+  }
+}

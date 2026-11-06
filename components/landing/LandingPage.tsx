@@ -12,6 +12,7 @@ import AuthForm from "./AuthForm";
 import LoginScrollButton from "./LoginScrollButton";
 import Link from "next/link";
 import Logo from "../layout/Logo";
+import FloatingIcons from "./FloatingIcons";
 
 export default function LandingPage() {
   return (
@@ -34,87 +35,89 @@ export default function LandingPage() {
 
       <div className="relative z-10 mx-auto grid grid-cols-1 min-h-screen w-full lg:grid-cols-[1.25fr_0.75fr]">
         {/* LEWA STRONA */}
-        {/* Dekoracyjne tło panelu */}
 
-        <section className="relative flex flex-col justify-center pr-4 pl-4 py-8 sm:pr-10 sm:pl-[5vw] xl:pr-20 [1600px]:pl-[7vw]">
-          <div className="absolute -z-10 inset-0 bg-gradient-to-br from-[#223630] via-[#223630]/80 to-[#223630]/90  lg:rounded-tr-[600px]" />
+        <section className="relative isolate flex flex-col justify-center pb-[70px] lg:pb-0 pr-4 pl-4 py-8 sm:pr-10 sm:pl-[5vw] xl:pr-20 [1600px]:pl-[7vw]">
+          <div className="absolute z-0 inset-0 bg-gradient-to-br from-[#223630] via-[#223630]/80 to-[#223630]/90 rounded-b-[100px] lg:rounded-b-none lg:rounded-tr-[600px]" />
+
+          <FloatingIcons />
           {/* Logo */}
+          <div className="relative z-20">
+            <Link href="/" className="group flex w-fit items-center gap-3">
+              <Logo />
+            </Link>
 
-          <Link href="/" className="group flex w-fit items-center gap-3">
-            <Logo />
-          </Link>
+            {/* Nagłówek */}
 
-          {/* Nagłówek */}
-
-          <div className="mt-10 lg:mt-6 [1600px]:mt-10">
-            <div className="mb-6 flex w-4/5 lg:w-auto mx-auto lg:inline-flex justify-center items-center gap-2 rounded-full border border-[#244C3B]/15 bg-[#FFFEFA] px-4 py-2 text-xs font-semibold text-[#42634D] backdrop-blur">
-              <FaLeaf size={15} />
-              <span>Więcej harmonii na co dzień</span>
-            </div>
-
-            <h1 className="text-3xl font-semibold leading-[1.12] tracking-tight text-[#819B72] sm:text-5xl [1600px]:text-6xl text-center lg:text-left">
-              Wszystko, co ważne.
-              <span className="mt-2 block font-serif font-medium italic text-[#eae3d0]">
-                W jednym miejscu.
-              </span>
-            </h1>
-
-            <p className="mt-4 [1600px]:mt-7 ml-2 text-base leading-8 text-[#FFFEFA] font-medium [1600px]:text-lg text-justify lg:text-left">
-              Rodzina, codzienne obowiązki, wspólne plany i Twój dom. Life Hub
-              pomaga Ci uporządkować codzienność, żeby mieć więcej czasu na to,
-              co naprawdę się liczy.
-            </p>
-          </div>
-
-          {/* CTA */}
-
-          <LoginScrollButton />
-
-          {/* KORZYŚCI */}
-
-          <div className="mt-4 px-3 lg:px-0 [1600px]:mt-10 grid grid-cols-1 gap-y-3 lg:pr-14 gap-x-3 sm:grid-cols-2">
-            <Feature
-              icon={FiCalendar}
-              title="Wspólny kalendarz"
-              description="Ważne daty i plany całej rodziny."
-            />
-
-            <Feature
-              icon={FiCheckCircle}
-              title="Codzienne zadania"
-              description="Obowiązki, terminy i domowe sprawy."
-            />
-
-            <Feature
-              icon={FaShoppingBasket}
-              title="Lista zakupów"
-              description="Wszystko, czego potrzebujecie, pod ręką."
-            />
-
-            <Feature
-              icon={FiActivity}
-              title="Inteligentny dom"
-              description="Energia, urządzenia i domowe statystyki."
-            />
-          </div>
-
-          {/* DODATKOWY AKCENT */}
-
-          <div className="hidden [1600px]:flex items-center gap-3 text-sm text-[#827C6F]">
-            <div className="flex -space-x-2">
-              <div className="flex size-8 items-center justify-center rounded-full border-2 border-[#F5F0E7] bg-[#D7B978]">
-                <FiUsers size={14} className="text-[#453F34]" />
+            <div className="mt-10 lg:mt-6 [1600px]:mt-10">
+              <div className="mb-6 flex w-4/5 lg:w-auto mx-auto lg:inline-flex justify-center items-center gap-2 rounded-full border border-[#244C3B]/15 bg-[#FFFEFA] px-4 py-2 text-xs font-semibold text-[#42634D] backdrop-blur">
+                <FaLeaf size={15} />
+                <span>Więcej harmonii na co dzień</span>
               </div>
 
-              <div className="flex size-8 items-center justify-center rounded-full border-2 border-[#F5F0E7] bg-[#DDE5D9]">
-                <FiShield size={14} className="text-[#244C3B]" />
-              </div>
+              <h1 className="text-3xl font-semibold leading-[1.12] tracking-wider text-[#acc39e] sm:text-5xl [1600px]:text-6xl text-center lg:text-left">
+                Wszystko, co ważne.
+                <span className="mt-2 block font-serif font-medium tracking-tight italic text-[#eae3d0]">
+                  W jednym miejscu.
+                </span>
+              </h1>
+              {/* text-[#819B72] */}
+              <p className="mt-4 [1600px]:mt-7 ml-2 text-base leading-8 text-[#FFFEFA] font-medium [1600px]:text-lg text-justify lg:text-left">
+                Rodzina, codzienne obowiązki, wspólne plany i Twój dom. Life Hub
+                pomaga Ci uporządkować codzienność, żeby mieć więcej czasu na
+                to, co naprawdę się liczy.
+              </p>
             </div>
 
-            <p className="text-[#53554d] font-medium">
-              Jedna przestrzeń.{" "}
-              <span className="text-[#244C3B]">Cała rodzina.</span>
-            </p>
+            {/* CTA */}
+
+            <LoginScrollButton />
+
+            {/* KORZYŚCI */}
+
+            <div className="mt-4 px-3 lg:px-0 [1600px]:mt-10 grid grid-cols-1 gap-y-3 lg:pr-14 gap-x-3 sm:grid-cols-2">
+              <Feature
+                icon={FiCalendar}
+                title="Wspólny kalendarz"
+                description="Ważne daty i plany całej rodziny."
+              />
+
+              <Feature
+                icon={FiCheckCircle}
+                title="Codzienne zadania"
+                description="Obowiązki, terminy i domowe sprawy."
+              />
+
+              <Feature
+                icon={FaShoppingBasket}
+                title="Lista zakupów"
+                description="Wszystko, czego potrzebujecie, pod ręką."
+              />
+
+              <Feature
+                icon={FiActivity}
+                title="Inteligentny dom"
+                description="Energia, urządzenia i domowe statystyki."
+              />
+            </div>
+
+            {/* DODATKOWY AKCENT */}
+
+            <div className="hidden [1600px]:flex items-center gap-3 text-sm text-[#827C6F]">
+              <div className="flex -space-x-2">
+                <div className="flex size-8 items-center justify-center rounded-full border-2 border-[#F5F0E7] bg-[#D7B978]">
+                  <FiUsers size={14} className="text-[#453F34]" />
+                </div>
+
+                <div className="flex size-8 items-center justify-center rounded-full border-2 border-[#F5F0E7] bg-[#DDE5D9]">
+                  <FiShield size={14} className="text-[#244C3B]" />
+                </div>
+              </div>
+
+              <p className="text-[#53554d] font-medium">
+                Jedna przestrzeń.{" "}
+                <span className="text-[#244C3B]">Cała rodzina.</span>
+              </p>
+            </div>
           </div>
         </section>
 

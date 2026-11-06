@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavigationItem } from "@/types/navigation";
-import {
-  RiDashboardHorizontalFill,
-  RiLightbulbFlashFill,
-  RiSettings4Fill,
-} from "react-icons/ri";
+import { RiDashboardHorizontalFill } from "react-icons/ri";
 import {
   MdFamilyRestroom,
   MdOutlineContactPhone,
@@ -14,7 +10,7 @@ import {
 } from "react-icons/md";
 import { FaCalendarAlt, FaTasks, FaShoppingCart } from "react-icons/fa";
 import { ImTable } from "react-icons/im";
-import { FaUserDoctor, FaEarthAmericas, FaHouse } from "react-icons/fa6";
+import { FaEarthAmericas } from "react-icons/fa6";
 
 const mainNavigation: NavigationItem[] = [
   {
