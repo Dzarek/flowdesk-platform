@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
 import { Doppio_One } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 
 export const doppioOne = Doppio_One({
   weight: "400",
@@ -48,6 +49,33 @@ export default function RootLayout({
         className={`${geistSans.variable} ${doppioOne.variable} ${quicksand.variable} ${inter.variable} ${manrope.variable} antialiased`}
       >
         <ThemeProvider>{children}</ThemeProvider>
+        <Toaster
+          position="top-center"
+          containerStyle={{
+            top: 100,
+          }}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              borderRadius: "12px",
+              background: "#222",
+              color: "#fff",
+              border: "1px solid #4c7868",
+            },
+            success: {
+              iconTheme: {
+                primary: "#4c7868",
+                secondary: "#222",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "#fff",
+                secondary: "#222",
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

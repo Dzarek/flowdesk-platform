@@ -158,7 +158,7 @@ export default function AuthForm() {
             width={400}
             height={400}
             priority
-            className="relative z-10 w-5/6 max-w-[280px] object-contain"
+            className="relative z-10 w-5/6 max-w-[280px]  object-contain"
           />
 
           <h2 className="mt-5 text-center text-xl font-medium text-[#244C3B]">
@@ -173,7 +173,7 @@ export default function AuthForm() {
           <button
             type="button"
             onClick={() => setSecondPage(true)}
-            className="mt-7 flex h-12 w-full max-w-xs items-center justify-center gap-3 rounded-xl bg-[#244C3B] px-5 text-sm font-semibold text-[#FFFEFA] shadow-lg shadow-[#244C3B]/15 transition duration-300 hover:-translate-y-0.5 hover:bg-[#315B46] hover:shadow-xl"
+            className="mt-7 flex h-12 w-full max-w-xs items-center justify-center gap-3 rounded-xl bg-[#223630]/90 px-5 text-sm font-semibold text-[#FFFEFA] shadow-lg shadow-[#244C3B]/15 transition duration-300 hover:-translate-y-0.5 hover:bg-[#315B46] hover:shadow-xl"
           >
             Zaloguj się lub utwórz konto
             <FaArrowRight size={15} />

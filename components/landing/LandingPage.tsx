@@ -33,7 +33,7 @@ export default function LandingPage() {
 
       {/* GŁÓWNY UKŁAD */}
 
-      <div className="relative z-10 mx-auto grid grid-cols-1 min-h-screen w-full lg:grid-cols-[1.25fr_0.75fr]">
+      <div className="relative z-10 mx-auto grid grid-cols-1 min-h-screen w-full lg:grid-cols-[1.25fr_0.75fr] bg-amber-100/20">
         {/* LEWA STRONA */}
 
         <section className="relative isolate flex flex-col justify-center pb-[70px] lg:pb-0 pr-4 pl-4 py-8 sm:pr-10 sm:pl-[5vw] xl:pr-20 [1600px]:pl-[7vw]">
@@ -42,26 +42,29 @@ export default function LandingPage() {
           <FloatingIcons />
           {/* Logo */}
           <div className="relative z-20">
-            <Link href="/" className="group flex w-fit items-center gap-3">
+            <Link
+              href="/"
+              className="group flex w-fit items-center gap-3 mx-auto lg:mx-0"
+            >
               <Logo />
             </Link>
 
             {/* Nagłówek */}
 
             <div className="mt-10 lg:mt-6 [1600px]:mt-10">
-              <div className="mb-6 flex w-4/5 lg:w-auto mx-auto lg:inline-flex justify-center items-center gap-2 rounded-full border border-[#244C3B]/15 bg-[#FFFEFA] px-4 py-2 text-xs font-semibold text-[#42634D] backdrop-blur">
+              <div className="mb-10 lg:mb-6 flex w-3/4 lg:w-auto mx-auto lg:inline-flex justify-center items-center gap-2 rounded-full border border-[#244C3B]/15 bg-[#FFFEFA] px-4 py-2 text-xs font-semibold text-[#42634D] backdrop-blur">
                 <FaLeaf size={15} />
                 <span>Więcej harmonii na co dzień</span>
               </div>
 
-              <h1 className="text-3xl font-semibold leading-[1.12] tracking-wider text-[#acc39e] sm:text-5xl [1600px]:text-6xl text-center lg:text-left">
-                Wszystko, co ważne.
-                <span className="mt-2 block font-serif font-medium tracking-tight italic text-[#eae3d0]">
-                  W jednym miejscu.
+              <h1 className="text-2xl font-semibold leading-[1.12] tracking-wider text-[#acc39e] sm:text-5xl [1600px]:text-6xl text-center lg:text-left">
+                Wszystko, co ważne
+                <span className="mt-2 block font-serif font-medium italic text-[#eae3d0]">
+                  w jednym miejscu.
                 </span>
               </h1>
               {/* text-[#819B72] */}
-              <p className="mt-4 [1600px]:mt-7 ml-2 text-base leading-8 text-[#FFFEFA] font-medium [1600px]:text-lg text-justify lg:text-left">
+              <p className="mt-6 min-[1600px]:mt-7 min-[1600px]:max-w-4/5 ml-2 text-sm lg:text-base leading-8 text-[#FFFEFA] font-medium min-[1600px]:text-lg text-center lg:text-left">
                 Rodzina, codzienne obowiązki, wspólne plany i Twój dom. Life Hub
                 pomaga Ci uporządkować codzienność, żeby mieć więcej czasu na
                 to, co naprawdę się liczy.
@@ -69,12 +72,12 @@ export default function LandingPage() {
             </div>
 
             {/* CTA */}
-
-            <LoginScrollButton />
-
+            <div className="flex items-center justify-center w-full lg:hidden mb-10">
+              <LoginScrollButton />
+            </div>
             {/* KORZYŚCI */}
 
-            <div className="mt-4 px-3 lg:px-0 [1600px]:mt-10 grid grid-cols-1 gap-y-3 lg:pr-14 gap-x-3 sm:grid-cols-2">
+            <div className="min-[1600px]:max-w-[95%] mt-4 px-8 lg:px-0 min-[1600px]:mt-10 grid grid-cols-1 gap-y-3 lg:pr-14 gap-x-3 sm:grid-cols-2">
               <Feature
                 icon={FiCalendar}
                 title="Wspólny kalendarz"
@@ -125,18 +128,18 @@ export default function LandingPage() {
 
         <section
           id="logowanie"
-          className="relative flex items-center justify-center px-5 pt-10 pb-16 sm:px-10 lg:px-12 [1600px]:pt-16"
+          className="relative flex items-center justify-center px-5 pt-10 pb-16 sm:px-10 lg:px-12 min-[1600px]:pt-16"
         >
           <div className="relative w-full max-w-md">
             <div className="mb-8 text-center">
-              <h2 className="mt-3 uppercase text-xl tracking-[0.2em] [1600px]:text-3xl font-semibold text-[var(--greenText)]">
+              <h2 className="mt-3 uppercase text-xl tracking-[0.2em] font-semibold text-[var(--greenText)]">
                 Dobrze, że jesteś.
               </h2>
             </div>
-            <div className="w-full lg:w-[400px] mx-auto [1600px]:w-auto">
+            <div className="w-full lg:w-[400px] mx-auto min-[1600px]:w-auto">
               <AuthForm />
             </div>
-            <p className="hidden [1600px]:block mt-6 text-center text-sm text-[#524d43]">
+            <p className="hidden min-[1600px]:block mt-10 text-center text-base text-[#524d43]">
               Twoja rodzina. Wasze plany. Wasz dom.
             </p>
           </div>
@@ -178,7 +181,7 @@ function Feature({ icon: Icon, title, description }: FeatureProps) {
   return (
     <div className="group relative isolate overflow-hidden rounded-[24px] border border-[#244C3B]/8 bg-[#FFFEFA] p-4 [1600px]:p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#244C3B]/15 hover:bg-[#FFFEFA] hover:shadow-[0_16px_40px_-24px_rgba(36,76,59,0.3)]">
       {/* Organiczny akcent w tle */}
-      <div className="pointer-events-none absolute -right-8 -top-8 -z-10 size-28 rounded-full bg-[#DCE7D9]/70 transition-transform duration-500 group-hover:scale-125" />
+      <div className="pointer-events-none absolute -right-8 -top-8 -z-10 size-24 lg:size-28 rounded-full bg-[#DCE7D9]/70 transition-transform duration-500 group-hover:scale-125" />
 
       <div className="flex items-start justify-between">
         <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8A806F]">

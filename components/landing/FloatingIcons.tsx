@@ -135,6 +135,22 @@ export default function FloatingIcons() {
     L ${width} ${height}
   `;
 
+  const mobileRadius = 100;
+  const mobileK = 0.5522847498 * mobileRadius;
+
+  const mobilePath = `
+  M 0 ${height - mobileRadius}
+  C 0 ${height - mobileRadius + mobileK},
+    ${mobileRadius - mobileK} ${height},
+    ${mobileRadius} ${height}
+  L ${width - mobileRadius} ${height}
+  C ${width - mobileRadius + mobileK} ${height},
+    ${width} ${height - mobileRadius + mobileK},
+    ${width} ${height - mobileRadius}
+`;
+  const isMobile = width < 1024;
+  const activePath = isMobile ? mobilePath : path;
+
   return (
     <svg
       ref={svgRef}
@@ -143,7 +159,7 @@ export default function FloatingIcons() {
       preserveAspectRatio="none"
     >
       <defs>
-        <path id="iconOrbitPath" d={path} />
+        <path id="iconOrbitPath" d={activePath} />
       </defs>
 
       {[0, 1, 2].map((position) => {
