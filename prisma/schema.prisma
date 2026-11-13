@@ -13,36 +13,108 @@ enum UserRole {
   ADMIN
 }
 
+enum FamilyMemberRole {
+  HEAD
+  ADULT
+  CHILD
+}
 
+enum FamilyInvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
 
 model User {
-  id                    String   @id @default(cuid())
-  email                 String   @unique
-  name                  String
-  password              String?
-  role                  UserRole @default(USER)
-  city                  String?
+  id       String   @id @default(cuid())
+  email    String   @unique
+  name     String
+  password String?
+  role     UserRole @default(USER)
+  city     String?
 
-  familyId              String?
-  family                Family?  @relation(fields: [familyId], references: [id])
+  familyId String?
+  family   Family? @relation(fields: [familyId], references: [id], onDelete: SetNull)
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  familyMember FamilyMember?
 
-  passwordResetTokens   PasswordResetToken[]
+  passwordResetTokens PasswordResetToken[]
+
+  sentFamilyInvitations FamilyInvitation[] @relation("InvitationSender")
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([familyId])
 }
 
 model Family {
-  id                    String   @id @default(cuid())
-  name                  String
+  id   String @id @default(cuid())
+  name String
 
-  // UID użytkownika w Firebase Authentication aplikacji BuyList
-  buylistFirebaseUid    String?  @unique
+  buylistFirebaseUid String? @unique
 
-  members               User[]
+  members User[]
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  familyMembers FamilyMember[]
+  invitations   FamilyInvitation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FamilyMember {
+  id   String @id @default(cuid())
+  name String
+
+  email String?
+
+  role            FamilyMemberRole
+  roleDescription String?
+
+  imageUrl String?
+  color    String  @default("#E4EBD5")
+
+  joinedAt DateTime @default(now())
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId])
+  @@index([familyId, role])
+}
+
+model FamilyInvitation {
+  id String @id @default(cuid())
+
+  email String
+
+  tokenHash String @unique
+
+  status FamilyInvitationStatus @default(PENDING)
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  invitedByUserId String?
+  invitedBy       User?   @relation("InvitationSender", fields: [invitedByUserId], references: [id], onDelete: SetNull)
+
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId, email])
+  @@index([familyId, status])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {

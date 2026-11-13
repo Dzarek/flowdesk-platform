@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
-import AppLayoutClient from "./AppLayoutClient";
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+
+import AppLayoutClient from "./AppLayoutClient";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -12,7 +13,7 @@ type AppLayoutProps = {
 export default async function AppLayout({ children }: AppLayoutProps) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/");
   }
 
@@ -23,19 +24,21 @@ export default async function AppLayout({ children }: AppLayoutProps) {
     select: {
       name: true,
       role: true,
-      email: true,
+      familyId: true,
     },
   });
+
   if (!user) {
     redirect("/");
   }
 
+  // Administrator systemowy nie musi należeć do rodziny.
+  if (user.role !== "ADMIN" && !user.familyId) {
+    redirect("/utworz-rodzine");
+  }
+
   return (
-    <AppLayoutClient
-      role={session.user.role}
-      userName={user.name ?? "Użytkownik"}
-      activePromotions={[]}
-    >
+    <AppLayoutClient role={user.role} userName={user.name}>
       {children}
     </AppLayoutClient>
   );

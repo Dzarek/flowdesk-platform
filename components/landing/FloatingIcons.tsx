@@ -150,6 +150,7 @@ export default function FloatingIcons() {
 `;
   const isMobile = width < 1024;
   const activePath = isMobile ? mobilePath : path;
+  console.log(width);
 
   return (
     <svg

@@ -23,14 +23,12 @@ type AppLayoutClientProps = {
   children: ReactNode;
   role: UserRole;
   userName: string;
-  activePromotions: ActivePromotion[];
 };
 
 export default function AppLayoutClient({
   children,
   role,
   userName,
-  activePromotions,
 }: AppLayoutClientProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -42,7 +40,6 @@ export default function AppLayoutClient({
 
       <AppSidebar
         role={role}
-        activePromotions={activePromotions}
         user={{
           name: userName,
           role,
@@ -75,13 +72,13 @@ export default function AppLayoutClient({
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover opacity-[0.3] rounded-2xl"
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.2] rounded-2xl"
           >
             <source src="/videos/videoBg4.webm" type="video/webm" />
           </video>
           {/* <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#b8c3b8]/30 via-[#e2d6b8]/40 to-[#b8c3b8]/60 " /> */}
 
-          <div className="relative">{children}</div>
+          <div className="relative ">{children}</div>
         </main>
       </div>
       {/* =====================================================

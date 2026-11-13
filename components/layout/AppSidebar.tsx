@@ -12,19 +12,8 @@ import { RiSettings4Fill } from "react-icons/ri";
 
 type UserRole = "USER" | "ADMIN";
 
-type ActivePromotion = {
-  id: string;
-  name: string;
-  bank: {
-    id: string;
-    name: string;
-    color: string;
-  };
-};
-
 type AppSidebarProps = {
   role: UserRole;
-  activePromotions: ActivePromotion[];
 
   user: {
     name: string;

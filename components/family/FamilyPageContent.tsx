@@ -1,6 +1,18 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
+import { useRouter } from "next/navigation";
+import {
+  createChild,
+  updateFamilyMember,
+  deleteChild,
+} from "@/app/(app)/rodzina/actions";
 import Image from "next/image";
 import {
   MdAdd,
@@ -19,7 +31,6 @@ import {
 } from "react-icons/md";
 
 import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
-import { mockFamilyMembers } from "@/lib/family/mock-data";
 
 type FilterType = "ALL" | "ADULT" | "CHILD";
 
@@ -83,10 +94,10 @@ function StatCard({
       <div
         className={`flex h-10 w-10 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-full ${iconBg} ${iconColor}`}
       >
-        <Icon className="size-5 xl:size-7" />
+        <Icon className="size-5 xl:size-6" />
       </div>
 
-      <p className="text-xl xl:text-2xl font-extrabold leading-none text-[#263C35]">
+      <p className="text-xl xl:text-xl font-extrabold leading-none text-[#263C35]">
         {value}
       </p>
       <div className="min-w-0">
@@ -164,17 +175,19 @@ function MemberCard({
             </button>
           )}
 
-          {isFamilyAdmin && !member.isCurrentUser && (
-            <button
-              type="button"
-              onClick={() => onDelete(member)}
-              aria-label={`Usuń członka: ${member.name}`}
-              title="Usuń członka"
-              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
-            >
-              <MdDeleteOutline size={21} />
-            </button>
-          )}
+          {isFamilyAdmin &&
+            member.role === "CHILD" &&
+            !member.isCurrentUser && (
+              <button
+                type="button"
+                onClick={() => onDelete(member)}
+                aria-label={`Usuń członka: ${member.name}`}
+                title="Usuń członka"
+                className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
+              >
+                <MdDeleteOutline size={21} />
+              </button>
+            )}
         </div>
       </div>
 
@@ -187,11 +200,11 @@ function MemberCard({
 
       <div className="mt-1 flex min-w-0 items-center gap-2 text-sm text-[#839087]">
         <MdMailOutline className="shrink-0" size={17} />
-        <span className="truncate">{member.email}</span>
+        <span className="truncate">{member.email ?? "Brak adresu e-mail"}</span>
       </div>
 
       <p className="mt-4 min-h-[60px] text-sm leading-6 text-[#718078]">
-        {member.roleDescription}
+        {member.roleDescription || "Brak opisu"}
       </p>
 
       <div className="mt-4 flex items-center gap-2 border-t border-[#E9EEE6] pt-4 text-xs text-[#839087]">
@@ -202,8 +215,20 @@ function MemberCard({
   );
 }
 
-export default function FamilyPageContent() {
-  const [members, setMembers] = useState<FamilyMember[]>(mockFamilyMembers);
+type FamilyPageContentProps = {
+  initialMembers: FamilyMember[];
+};
+
+export default function FamilyPageContent({
+  initialMembers,
+}: FamilyPageContentProps) {
+  const [members, setMembers] = useState<FamilyMember[]>(initialMembers);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setMembers(initialMembers);
+  }, [initialMembers]);
 
   const [filter, setFilter] = useState<FilterType>("ALL");
   const [search, setSearch] = useState("");
@@ -216,7 +241,7 @@ export default function FamilyPageContent() {
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"ADULT" | "CHILD">("ADULT");
+
   const [inviteMessage, setInviteMessage] = useState("");
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [mockInvitations, setMockInvitations] = useState<
@@ -248,7 +273,7 @@ export default function FamilyPageContent() {
 
       const matchesSearch = [
         member.name,
-        member.email,
+        member.email ?? "",
         roleLabels[member.role],
       ].some((value) => value.toLocaleLowerCase("pl-PL").includes(query));
 
@@ -257,7 +282,13 @@ export default function FamilyPageContent() {
   }, [members, filter, search]);
 
   function openModal() {
-    setForm({ name: "", email: "", role: "ADULT", roleDescription: "" });
+    setEditingMember(null);
+    setForm({
+      name: "",
+      email: "",
+      role: "CHILD",
+      roleDescription: "",
+    });
     setPhotoPreview(null);
     setError("");
     setIsModalOpen(true);
@@ -270,56 +301,51 @@ export default function FamilyPageContent() {
     setError("");
   }
 
-  function handleAddMember(event: FormEvent<HTMLFormElement>) {
+  async function handleAddMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
 
-    const name = form.name.trim();
-    const email = form.email.trim().toLowerCase();
-    const roleDescription = form.roleDescription;
-
-    if (!name || !email || !roleDescription) {
-      setError("Uzupełnij imię, adres e-mail i opis.");
-      return;
-    }
-
-    const emailExists = members.some(
-      (member) => member.email.toLowerCase() === email,
-    );
-
-    if (emailExists) {
-      setError("Członek z takim adresem e-mail już istnieje.");
-      return;
-    }
-
-    const newMember: FamilyMember = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      role: form.role,
-      roleDescription,
-      img: photoPreview,
+    const result = await createChild({
+      name: form.name,
+      email: form.email,
+      roleDescription: form.roleDescription,
       color: "#E4EBD5",
-      joinedAt: new Date().toLocaleDateString("sv-SE"),
-    };
+    });
 
-    setMembers((current) => [...current, newMember]);
+    if (!result.success) {
+      setError(result.error ?? "Nie udało się dodać dziecka.");
+      return;
+    }
+
+    closeModal();
     setFilter("ALL");
     setSearch("");
-    closeModal();
+
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
-  function handleDeleteMember() {
+  async function handleDeleteMember() {
     if (!memberToDelete || memberToDelete.isCurrentUser) return;
 
-    setMembers((current) =>
-      current.filter((member) => member.id !== memberToDelete.id),
-    );
+    setError("");
+
+    const result = await deleteChild(memberToDelete.id);
+
+    if (!result.success) {
+      setError(result.error ?? "Nie udało się usunąć profilu.");
+      return;
+    }
 
     setMemberToDelete(null);
+
+    startTransition(() => {
+      router.refresh();
+    });
   }
   function openInviteModal() {
     setInviteEmail("");
-    setInviteRole("ADULT");
     setInviteMessage("");
     setIsInviteModalOpen(true);
   }
@@ -335,7 +361,7 @@ export default function FamilyPageContent() {
     }
 
     const existingMember = members.some(
-      (member) => member.email.toLowerCase() === email,
+      (member) => (member.email ?? "").toLowerCase() === email,
     );
 
     const existingInvitation = mockInvitations.some(
@@ -358,7 +384,7 @@ export default function FamilyPageContent() {
       {
         id: crypto.randomUUID(),
         email,
-        role: inviteRole,
+        role: "CHILD",
         status: "PENDING",
       },
     ]);
@@ -380,63 +406,46 @@ export default function FamilyPageContent() {
 
     setForm({
       name: member.name,
-      email: member.email,
+      email: member.email ?? "",
       role: member.role,
-      roleDescription: member.roleDescription,
+      roleDescription: member.roleDescription ?? "",
     });
 
-    setPhotoPreview(member.img ?? null);
-    setError("");
+    setPhotoPreview(member.img);
     setIsModalOpen(true);
   }
 
-  function handleUpdateMember(event: FormEvent<HTMLFormElement>) {
+  async function handleUpdateMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!editingMember || !canEditMember(editingMember)) return;
 
-    const name = form.name.trim();
-    const email = form.email.trim().toLowerCase();
-    const roleDescription = form.roleDescription.trim();
+    setError("");
 
-    if (!name || !email || !roleDescription) {
-      setError("Uzupełnij wszystkie wymagane pola.");
+    const result = await updateFamilyMember(editingMember.id, {
+      name: form.name,
+      email: form.email,
+      roleDescription: form.roleDescription,
+      color: editingMember.color,
+    });
+
+    if (!result.success) {
+      setError(result.error ?? "Nie udało się zaktualizować profilu.");
       return;
     }
-
-    const emailExists = members.some(
-      (member) =>
-        member.id !== editingMember.id && member.email.toLowerCase() === email,
-    );
-
-    if (emailExists) {
-      setError("Członek z takim adresem e-mail już istnieje.");
-      return;
-    }
-
-    setMembers((current) =>
-      current.map((member) =>
-        member.id === editingMember.id
-          ? {
-              ...member,
-              name,
-              email,
-              roleDescription,
-              img: photoPreview,
-              role: isFamilyAdmin ? form.role : member.role,
-            }
-          : member,
-      ),
-    );
 
     closeModal();
+
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   return (
     <div className="space-y-7 xl:pb-6">
       {/* Nagłówek i ilustracja */}
       <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE]">
-        <div className="xl:h-[230px] relative z-10 grid items-center gap-5 px-4  sm:px-8 lg:min-h-[330px] lg:grid-cols-2 lg:px-10">
+        <div className="xl:h-[230px] relative z-10 grid items-center gap-5 pl-4  sm:pl-8 lg:min-h-[330px] lg:grid-cols-2 lg:pl-10">
           <div className="py-8">
             <div className="mb-4 flex items-center ml-2 xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
               <MdFamilyRestroom size={20} />
@@ -615,7 +624,7 @@ export default function FamilyPageContent() {
 
             <span className="min-w-0 flex-1">
               <span className="block font-bold text-[var(--greenText)]">
-                Dodaj nowego członka rodziny
+                Dodaj dziecko
               </span>
               <span className="mt-1 block text-sm text-[#839087]">
                 Przygotuj rodzinę do wspólnej organizacji codziennego życia.
@@ -668,7 +677,7 @@ export default function FamilyPageContent() {
                   id="family-modal-title"
                   className="mt-1 text-2xl font-extrabold text-[#19483D]"
                 >
-                  {editingMember ? "Edytuj profil" : "Dodaj członka rodziny"}
+                  {editingMember ? "Edytuj profil" : "Dodaj dziecko"}
                 </h2>
               </div>
 
@@ -720,7 +729,6 @@ export default function FamilyPageContent() {
                 <input
                   id="member-email"
                   type="email"
-                  required
                   maxLength={254}
                   value={form.email}
                   onChange={(event) =>
@@ -816,29 +824,7 @@ export default function FamilyPageContent() {
                   </div>
                 </div>
               </div>
-              <div>
-                <label
-                  htmlFor="member-role"
-                  className="mb-2 block text-sm font-semibold text-[#38544A]"
-                >
-                  Rola w rodzinie
-                </label>
-                <select
-                  id="member-role"
-                  disabled={!isFamilyAdmin}
-                  value={form.role}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      role: event.target.value as FamilyMemberRole,
-                    }))
-                  }
-                  className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
-                >
-                  <option value="ADULT">Dorosły członek</option>
-                  <option value="CHILD">Dziecko</option>
-                </select>
-              </div>
+
               <div>
                 <label
                   htmlFor="member-roleDescription"
@@ -848,7 +834,6 @@ export default function FamilyPageContent() {
                 </label>
                 <textarea
                   id="member-roleDescription"
-                  required
                   maxLength={254}
                   value={form.roleDescription}
                   onChange={(event) =>
@@ -877,19 +862,14 @@ export default function FamilyPageContent() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+                  disabled={isPending}
+                  className="inline-flex cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
                 >
-                  {editingMember ? (
-                    <>
-                      <MdEdit size={20} />
-                      Zapisz zmiany
-                    </>
-                  ) : (
-                    <>
-                      <MdAdd size={20} />
-                      Dodaj członka
-                    </>
-                  )}
+                  {isPending
+                    ? "Zapisywanie..."
+                    : editingMember
+                      ? "Zapisz zmiany"
+                      : "Dodaj dziecko"}
                 </button>
               </div>
             </form>
@@ -964,27 +944,6 @@ export default function FamilyPageContent() {
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="invite-role"
-                  className="mb-2 block text-sm font-semibold text-[#38544A]"
-                >
-                  Rola w rodzinie
-                </label>
-
-                <select
-                  id="invite-role"
-                  value={inviteRole}
-                  onChange={(event) =>
-                    setInviteRole(event.target.value as "ADULT" | "CHILD")
-                  }
-                  className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-4 text-[#263C35] outline-none focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
-                >
-                  <option value="ADULT">Dorosły członek</option>
-                  <option value="CHILD">Dziecko</option>
-                </select>
-              </div>
-
               {inviteMessage && (
                 <p role="alert" className="text-sm font-medium text-red-600">
                   {inviteMessage}
@@ -1034,8 +993,8 @@ export default function FamilyPageContent() {
 
             <p className="mt-2 text-sm leading-6 text-[#718078]">
               Czy na pewno chcesz usunąć profil{" "}
-              <strong>{memberToDelete.name}</strong>? W tej wersji
-              demonstracyjnej zmiana nie jest zapisywana w bazie danych.
+              <strong>{memberToDelete.name}</strong>? Tej operacji nie można
+              cofnąć.
             </p>
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -1048,10 +1007,11 @@ export default function FamilyPageContent() {
               </button>
               <button
                 type="button"
+                disabled={isPending}
                 onClick={handleDeleteMember}
-                className="rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white hover:bg-red-700"
+                className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white hover:bg-red-700"
               >
-                Usuń członka
+                {isPending ? "Usuwanie..." : "Usuń członka"}
               </button>
             </div>
           </section>
