@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import {
   createChild,
   updateFamilyMember,
-  deleteChild,
+  deleteFamilyMember,
 } from "@/app/(app)/rodzina/actions";
 import Image from "next/image";
 import {
@@ -31,6 +31,10 @@ import {
 } from "react-icons/md";
 
 import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
+import {
+  createFamilyInvitation,
+  revokeFamilyInvitation,
+} from "@/app/(app)/rodzina/actions";
 
 type FilterType = "ALL" | "ADULT" | "CHILD";
 
@@ -175,19 +179,17 @@ function MemberCard({
             </button>
           )}
 
-          {isFamilyAdmin &&
-            member.role === "CHILD" &&
-            !member.isCurrentUser && (
-              <button
-                type="button"
-                onClick={() => onDelete(member)}
-                aria-label={`Usuń członka: ${member.name}`}
-                title="Usuń członka"
-                className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
-              >
-                <MdDeleteOutline size={21} />
-              </button>
-            )}
+          {isFamilyAdmin && member.role !== "HEAD" && !member.isCurrentUser && (
+            <button
+              type="button"
+              onClick={() => onDelete(member)}
+              aria-label={`Usuń członka: ${member.name}`}
+              title="Usuń członka"
+              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
+            >
+              <MdDeleteOutline size={21} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -214,13 +216,20 @@ function MemberCard({
     </article>
   );
 }
-
+type FamilyInvitationItem = {
+  id: string;
+  email: string;
+  createdAt: string;
+  expiresAt: string;
+};
 type FamilyPageContentProps = {
   initialMembers: FamilyMember[];
+  initialInvitations: FamilyInvitationItem[];
 };
 
 export default function FamilyPageContent({
   initialMembers,
+  initialInvitations,
 }: FamilyPageContentProps) {
   const [members, setMembers] = useState<FamilyMember[]>(initialMembers);
   const router = useRouter();
@@ -244,9 +253,13 @@ export default function FamilyPageContent({
 
   const [inviteMessage, setInviteMessage] = useState("");
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
-  const [mockInvitations, setMockInvitations] = useState<
-    { id: string; email: string; role: "ADULT" | "CHILD"; status: "PENDING" }[]
-  >([]);
+  const [invitations, setInvitations] =
+    useState<FamilyInvitationItem[]>(initialInvitations);
+  const [invitationError, setInvitationError] = useState("");
+
+  useEffect(() => {
+    setInvitations(initialInvitations);
+  }, [initialInvitations]);
 
   const [form, setForm] = useState({
     name: "",
@@ -331,10 +344,10 @@ export default function FamilyPageContent({
 
     setError("");
 
-    const result = await deleteChild(memberToDelete.id);
+    const result = await deleteFamilyMember(memberToDelete.id);
 
     if (!result.success) {
-      setError(result.error ?? "Nie udało się usunąć profilu.");
+      setError(result.message ?? "Nie udało się usunąć profilu.");
       return;
     }
 
@@ -350,46 +363,32 @@ export default function FamilyPageContent({
     setIsInviteModalOpen(true);
   }
 
-  function handleInviteMember(event: FormEvent<HTMLFormElement>) {
+  async function handleInviteMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setInviteMessage("");
 
-    const email = inviteEmail.trim().toLowerCase();
+    const result = await createFamilyInvitation(inviteEmail);
 
-    if (!email) {
-      setInviteMessage("Podaj adres e-mail.");
+    if (!result.success) {
+      setInviteMessage(result.error ?? "Nie udało się utworzyć zaproszenia.");
       return;
     }
-
-    const existingMember = members.some(
-      (member) => (member.email ?? "").toLowerCase() === email,
-    );
-
-    const existingInvitation = mockInvitations.some(
-      (invitation) =>
-        invitation.email === email && invitation.status === "PENDING",
-    );
-
-    if (existingMember) {
-      setInviteMessage("Ta osoba jest już członkiem rodziny.");
-      return;
-    }
-
-    if (existingInvitation) {
-      setInviteMessage("Zaproszenie dla tego adresu już istnieje.");
-      return;
-    }
-
-    setMockInvitations((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        email,
-        role: "CHILD",
-        status: "PENDING",
-      },
-    ]);
 
     setIsInviteModalOpen(false);
+    setInviteEmail("");
+
+    if (result.invitationUrl) {
+      try {
+        await navigator.clipboard.writeText(result.invitationUrl);
+        setInviteMessage("Zaproszenie utworzono. Link skopiowano do schowka.");
+      } catch {
+        setInviteMessage(
+          `Zaproszenie utworzono. Link: ${result.invitationUrl}`,
+        );
+      }
+    }
+
+    router.refresh();
   }
 
   const currentUser = members.find((member) => member.isCurrentUser);
@@ -435,6 +434,21 @@ export default function FamilyPageContent({
     }
 
     closeModal();
+
+    startTransition(() => {
+      router.refresh();
+    });
+  }
+
+  async function handleRevokeInvitation(invitationId: string) {
+    setInvitationError("");
+
+    const result = await revokeFamilyInvitation(invitationId);
+
+    if (!result.success) {
+      setInvitationError(result.error ?? "Nie udało się anulować zaproszenia.");
+      return;
+    }
 
     startTransition(() => {
       router.refresh();
@@ -564,7 +578,8 @@ export default function FamilyPageContent({
             </p>
           </div>
         )}
-        {mockInvitations.length > 0 && (
+
+        {invitations.length > 0 && (
           <div className="mt-6 rounded-2xl border border-[#DCE4D9] bg-[#F7F9F2] p-5">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2F0EB] text-[#287969]">
@@ -574,13 +589,19 @@ export default function FamilyPageContent({
               <div>
                 <h3 className="font-bold text-[#19483D]">Zaproszenia</h3>
                 <p className="text-sm text-[#839087]">
-                  {mockInvitations.length} oczekujących
+                  {invitations.length} oczekujących
                 </p>
               </div>
             </div>
 
+            {invitationError && (
+              <p role="alert" className="mb-3 text-sm font-medium text-red-600">
+                {invitationError}
+              </p>
+            )}
+
             <div className="space-y-2">
-              {mockInvitations.map((invitation) => (
+              {invitations.map((invitation) => (
                 <div
                   key={invitation.id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E4E9E0] bg-[#FEFEFA] p-4"
@@ -595,22 +616,40 @@ export default function FamilyPageContent({
                       <p className="break-all text-sm font-semibold text-[#263C35]">
                         {invitation.email}
                       </p>
+
                       <p className="mt-1 text-xs text-[#839087]">
-                        {invitation.role === "ADULT"
-                          ? "Dorosły członek"
-                          : "Dziecko"}
+                        Wygasa:{" "}
+                        {new Intl.DateTimeFormat("pl-PL", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        }).format(new Date(invitation.expiresAt))}
                       </p>
                     </div>
                   </div>
 
-                  <span className="rounded-full bg-[#F5EBDD] px-3 py-1.5 text-xs font-semibold text-[#8A6840]">
-                    Oczekujące
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-[#F5EBDD] px-3 py-1.5 text-xs font-semibold text-[#8A6840]">
+                      Oczekujące
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => handleRevokeInvitation(invitation.id)}
+                      title="Anuluj zaproszenie"
+                      aria-label={`Anuluj zaproszenie dla ${invitation.email}`}
+                      className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <MdClose size={19} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
         {/* Panel dodawania */}
         <div className="flex flex-col xl:flex-row items-center mt-10 xl:gap-4">
           <button
@@ -994,7 +1033,7 @@ export default function FamilyPageContent({
             <p className="mt-2 text-sm leading-6 text-[#718078]">
               Czy na pewno chcesz usunąć profil{" "}
               <strong>{memberToDelete.name}</strong>? Tej operacji nie można
-              cofnąć.
+              cofnąć. Konto członka zostanie całkowicie usunięte.
             </p>
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

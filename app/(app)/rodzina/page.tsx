@@ -56,5 +56,47 @@ export default async function FamilyPage() {
     isCurrentUser: member.userId === user.id,
   }));
 
-  return <FamilyPageContent initialMembers={initialMembers} />;
+  // Oznaczamy przeterminowane zaproszenia jako wygasłe.
+  await prisma.familyInvitation.updateMany({
+    where: {
+      familyId: user.familyId,
+      status: "PENDING",
+      expiresAt: {
+        lte: new Date(),
+      },
+    },
+    data: {
+      status: "EXPIRED",
+    },
+  });
+
+  const invitations = await prisma.familyInvitation.findMany({
+    where: {
+      familyId: user.familyId,
+      status: "PENDING",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+      expiresAt: true,
+    },
+  });
+
+  const initialInvitations = invitations.map((invitation) => ({
+    id: invitation.id,
+    email: invitation.email,
+    createdAt: invitation.createdAt.toISOString(),
+    expiresAt: invitation.expiresAt.toISOString(),
+  }));
+
+  return (
+    <FamilyPageContent
+      initialMembers={initialMembers}
+      initialInvitations={initialInvitations}
+    />
+  );
 }

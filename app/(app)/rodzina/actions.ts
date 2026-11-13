@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { createHash, randomBytes } from "node:crypto";
 
 type ActionResult = {
   success: boolean;
@@ -275,25 +276,24 @@ export async function updateFamilyMember(
   }
 }
 
-// Usuwanie profilu dziecka
-export async function deleteChild(memberId: string): Promise<ActionResult> {
+export async function deleteFamilyMember(memberId: string) {
+  const context = await getFamilyContext();
+
+  if (!context || context.role !== "HEAD") {
+    return {
+      success: false,
+      message: "Nie masz uprawnień do usunięcia członka rodziny.",
+    };
+  }
+
+  if (!memberId) {
+    return {
+      success: false,
+      message: "Nieprawidłowy identyfikator członka rodziny.",
+    };
+  }
+
   try {
-    const context = await getFamilyContext();
-
-    if (!context) {
-      return {
-        success: false,
-        error: "Nie znaleziono członkostwa w rodzinie.",
-      };
-    }
-
-    if (context.role !== "HEAD") {
-      return {
-        success: false,
-        error: "Nie masz uprawnień do usuwania członków.",
-      };
-    }
-
     const member = await prisma.familyMember.findFirst({
       where: {
         id: memberId,
@@ -307,37 +307,360 @@ export async function deleteChild(memberId: string): Promise<ActionResult> {
     });
 
     if (!member) {
-      return { success: false, error: "Nie znaleziono członka rodziny." };
-    }
-
-    if (member.role !== "CHILD") {
       return {
         success: false,
-        error: "Ta akcja służy wyłącznie do usuwania profili dzieci.",
+        message: "Nie znaleziono członka rodziny.",
       };
     }
 
-    if (member.userId) {
+    if (member.role === "HEAD") {
+      return {
+        success: false,
+        message: "Nie można usunąć głowy rodziny.",
+      };
+    }
+
+    if (member.id === context.memberId) {
+      return {
+        success: false,
+        message: "Nie możesz usunąć własnego profilu.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      if (member.userId) {
+        await tx.user.delete({
+          where: {
+            id: member.userId,
+          },
+        });
+      } else {
+        await tx.familyMember.delete({
+          where: {
+            id: member.id,
+          },
+        });
+      }
+    });
+
+    return {
+      success: true,
+      message: member.userId
+        ? "Konto i profil członka rodziny zostały usunięte."
+        : "Profil członka rodziny został usunięty.",
+    };
+  } catch (error) {
+    console.error("Błąd podczas usuwania członka rodziny:", error);
+
+    return {
+      success: false,
+      message: "Nie udało się usunąć członka rodziny.",
+    };
+  }
+}
+
+type InvitationResult = {
+  success: boolean;
+  error?: string;
+  invitationUrl?: string;
+};
+
+export async function createFamilyInvitation(
+  emailInput: string,
+): Promise<InvitationResult> {
+  try {
+    const context = await getFamilyContext();
+
+    if (!context) {
+      return {
+        success: false,
+        error: "Nie znaleziono członkostwa w rodzinie.",
+      };
+    }
+
+    if (context.role !== "HEAD") {
+      return {
+        success: false,
+        error: "Tylko głowa rodziny może zapraszać nowych członków.",
+      };
+    }
+
+    const email = emailInput.trim().toLowerCase();
+
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return {
+        success: false,
+        error: "Podaj prawidłowy adres e-mail.",
+      };
+    }
+
+    // Sprawdzenie istniejącego profilu w tej rodzinie.
+    const existingMember = await prisma.familyMember.findFirst({
+      where: {
+        familyId: context.familyId,
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingMember) {
+      return {
+        success: false,
+        error: "Ta osoba jest już członkiem rodziny.",
+      };
+    }
+
+    // Sprawdzenie, czy konto nie należy już do innej rodziny.
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        familyId: true,
+      },
+    });
+
+    if (existingUser?.familyId) {
       return {
         success: false,
         error:
-          "Ten profil ma przypisane konto użytkownika. Użyj procedury usuwania konta.",
+          existingUser.familyId === context.familyId
+            ? "To konto należy już do tej rodziny."
+            : "To konto jest już przypisane do innej rodziny.",
       };
     }
 
-    await prisma.familyMember.delete({
-      where: { id: member.id },
+    const now = new Date();
+
+    // Oznaczamy nieaktualne zaproszenia jako wygasłe.
+    await prisma.familyInvitation.updateMany({
+      where: {
+        familyId: context.familyId,
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+        status: "PENDING",
+        expiresAt: {
+          lte: now,
+        },
+      },
+      data: {
+        status: "EXPIRED",
+      },
+    });
+
+    // Sprawdzamy, czy istnieje aktywne zaproszenie.
+    const existingInvitation = await prisma.familyInvitation.findFirst({
+      where: {
+        familyId: context.familyId,
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+        status: "PENDING",
+        expiresAt: {
+          gt: now,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingInvitation) {
+      return {
+        success: false,
+        error: "Dla tego adresu istnieje już aktywne zaproszenie.",
+      };
+    }
+
+    // Generujemy kryptograficznie bezpieczny token.
+    const token = randomBytes(32).toString("hex");
+
+    // W bazie przechowujemy wyłącznie hash tokenu.
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    await prisma.familyInvitation.create({
+      data: {
+        email,
+        tokenHash,
+        familyId: context.familyId,
+        invitedByUserId: context.userId,
+        expiresAt,
+      },
+    });
+
+    const baseUrl = process.env.NEXTAUTH_URL;
+
+    if (!baseUrl) {
+      throw new Error("Brak konfiguracji NEXTAUTH_URL.");
+    }
+
+    const invitationUrl = new URL(`/zaproszenie/${token}`, baseUrl).toString();
+
+    revalidatePath("/rodzina");
+
+    return {
+      success: true,
+      invitationUrl,
+    };
+  } catch (error) {
+    console.error("createFamilyInvitation error:", error);
+
+    return {
+      success: false,
+      error: "Nie udało się utworzyć zaproszenia.",
+    };
+  }
+}
+
+export async function revokeFamilyInvitation(
+  invitationId: string,
+): Promise<ActionResult> {
+  try {
+    const context = await getFamilyContext();
+
+    if (!context) {
+      return {
+        success: false,
+        error: "Nie znaleziono członkostwa w rodzinie.",
+      };
+    }
+
+    if (context.role !== "HEAD") {
+      return {
+        success: false,
+        error: "Tylko głowa rodziny może anulować zaproszenia.",
+      };
+    }
+
+    const invitation = await prisma.familyInvitation.findFirst({
+      where: {
+        id: invitationId,
+        familyId: context.familyId,
+        status: "PENDING",
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+
+    if (!invitation) {
+      return {
+        success: false,
+        error: "Zaproszenie nie istnieje lub nie jest już aktywne.",
+      };
+    }
+
+    await prisma.familyInvitation.update({
+      where: { id: invitation.id },
+      data: {
+        status: "REVOKED",
+        revokedAt: new Date(),
+      },
     });
 
     revalidatePath("/rodzina");
 
     return { success: true };
   } catch (error) {
-    console.error("deleteChild error:", error);
+    console.error("revokeFamilyInvitation error:", error);
 
     return {
       success: false,
-      error: "Nie udało się usunąć profilu dziecka.",
+      error: "Nie udało się anulować zaproszenia.",
+    };
+  }
+}
+
+export async function transferFamilyHead(newHeadMemberId: string) {
+  const context = await getFamilyContext();
+
+  if (!context || context.role !== "HEAD") {
+    return {
+      success: false,
+      message: "Tylko głowa rodziny może przekazać tę rolę.",
+    };
+  }
+
+  if (!newHeadMemberId || newHeadMemberId === context.memberId) {
+    return {
+      success: false,
+      message: "Wybierz innego dorosłego członka rodziny.",
+    };
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const newHead = await tx.familyMember.findFirst({
+        where: {
+          id: newHeadMemberId,
+          familyId: context.familyId,
+          role: "ADULT",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!newHead) {
+        throw new Error("INVALID_TARGET");
+      }
+
+      // Najpierw zdejmujemy rolę HEAD z obecnego administratora.
+      const currentHead = await tx.familyMember.updateMany({
+        where: {
+          id: context.memberId,
+          familyId: context.familyId,
+          role: "HEAD",
+        },
+        data: {
+          role: "ADULT",
+        },
+      });
+
+      if (currentHead.count !== 1) {
+        throw new Error("CURRENT_HEAD_NOT_FOUND");
+      }
+
+      // Następnie przekazujemy rolę wybranemu dorosłemu.
+      const updatedNewHead = await tx.familyMember.updateMany({
+        where: {
+          id: newHead.id,
+          familyId: context.familyId,
+          role: "ADULT",
+        },
+        data: {
+          role: "HEAD",
+        },
+      });
+
+      if (updatedNewHead.count !== 1) {
+        throw new Error("TARGET_UPDATE_FAILED");
+      }
+    });
+
+    return {
+      success: true,
+      message: "Rola głowy rodziny została przekazana.",
+    };
+  } catch (error) {
+    console.error("Błąd podczas przekazywania roli HEAD:", error);
+
+    return {
+      success: false,
+      message:
+        error instanceof Error && error.message === "INVALID_TARGET"
+          ? "Wybrany członek rodziny nie jest dorosłym lub nie należy do tej rodziny."
+          : "Nie udało się przekazać roli głowy rodziny.",
     };
   }
 }
