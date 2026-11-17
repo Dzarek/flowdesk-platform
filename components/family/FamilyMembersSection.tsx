@@ -124,7 +124,7 @@ export default function FamilyMembersSection(props: Props) {
           onClick={onAddChild}
           className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-dashed border-[#BFD9C8] bg-[#F7F9F2] p-5 text-left transition hover:bg-[#EFF5EA] sm:p-6"
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D8EADD] text-[#287969]">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D8EADD] text-[var(--greenText)]">
             <MdPersonAddAlt1 size={25} />
           </span>
           <span className="min-w-0 flex-1">
@@ -141,7 +141,7 @@ export default function FamilyMembersSection(props: Props) {
           onClick={onInvite}
           className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-dashed border-[#BFD9C8] bg-[#F7F9F2] p-5 text-left transition hover:bg-[#EFF5EA] sm:p-6"
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D8EADD] text-[#287969]">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D8EADD] text-[var(--greenText)]">
             <MdMailOutline size={25} />
           </span>
           <span className="min-w-0 flex-1">

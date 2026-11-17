@@ -353,9 +353,9 @@ export default function FamilyPageContent({
             aria-labelledby="family-modal-title"
             className="my-auto w-full max-w-lg rounded-3xl bg-[#FEFEFA] p-6 shadow-xl sm:p-8"
           >
-            <div className="flex flex-col-reverse xl:flex-row items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-[#287969]">
+            <div className="flex flex-col-reverse xl:flex-row items-start justify-between gap-0 xl:gap-4">
+              <div className="text-center xl:text-left mx-auto xl:mx-0">
+                <p className="text-sm font-semibold text-[var(--greenText)]/70">
                   Twoje gospodarstwo domowe
                 </p>
                 <h2
@@ -435,7 +435,7 @@ export default function FamilyPageContent({
                 </label>
 
                 <div className="flex items-center gap-4 rounded-2xl border border-dashed border-[#BFD9C8] bg-[#F7F9F2] p-4">
-                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E4EBD5] text-[#287969]">
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E4EBD5] text-[var(--greenText)]">
                     {photoPreview ? (
                       <Image
                         src={photoPreview}
@@ -452,7 +452,7 @@ export default function FamilyPageContent({
                   <div className="min-w-0 flex-1">
                     <label
                       htmlFor="member-photo"
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#19483D]"
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[var(--greenText)] px-4 py-2.5 text-xs xl:text-sm font-semibold text-white transition hover:bg-[#19483D]"
                     >
                       <MdAdd size={18} />
                       Wybierz zdjęcie
@@ -550,7 +550,7 @@ export default function FamilyPageContent({
                     }))
                   }
                   placeholder="Planuje wycieczki, robi kanapki do pracy i szkoły."
-                  className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
+                  className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10 text-sm xl:text-base"
                 />
               </div>
               {error && (
@@ -570,7 +570,7 @@ export default function FamilyPageContent({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="inline-flex cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+                  className="inline-flex cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
                 >
                   {isPending
                     ? "Zapisywanie..."
@@ -598,15 +598,15 @@ export default function FamilyPageContent({
             aria-labelledby="invite-modal-title"
             className="my-auto w-full max-w-lg rounded-3xl bg-[#FEFEFA] p-6 shadow-xl sm:p-8"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-[#287969]">
+            <div className="flex flex-col-reverse xl:flex-row items-start justify-between gap-0 xl:gap-4">
+              <div className="text-center xl:text-left">
+                <p className="text-sm font-semibold text-[var(--greenText)]/70">
                   Powiększ swoją rodzinę w LifeHub
                 </p>
 
                 <h2
                   id="invite-modal-title"
-                  className="mt-1 text-2xl font-extrabold text-[#19483D]"
+                  className="mt-1 text-2xl font-extrabold text-[var(--greenText)]"
                 >
                   Zaproś do rodziny
                 </h2>
@@ -621,7 +621,7 @@ export default function FamilyPageContent({
                 type="button"
                 onClick={() => setIsInviteModalOpen(false)}
                 aria-label="Zamknij"
-                className="cursor-pointer rounded-xl p-2 text-[#718078] hover:bg-[#F0F3EB]"
+                className="cursor-pointer rounded-xl ml-auto p-2 text-[#718078] hover:bg-[#F0F3EB]"
               >
                 <MdClose size={22} />
               </button>
@@ -672,7 +672,7 @@ export default function FamilyPageContent({
 
                 <button
                   type="submit"
-                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
                 >
                   <MdMailOutline size={20} />
                   Dodaj zaproszenie
@@ -692,13 +692,13 @@ export default function FamilyPageContent({
             aria-labelledby="transfer-head-title"
             className="w-full max-w-md rounded-3xl bg-[#FEFEFA] p-6 shadow-xl"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E2F0EB] text-[#287969]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E2F0EB] text-[var(--greenText)]">
               <MdOutlineAdminPanelSettings size={26} />
             </div>
 
             <h2
               id="transfer-head-title"
-              className="mt-4 text-xl font-extrabold text-[#263C35]"
+              className="mt-4 text-xl font-extrabold text-[#263C35] text-center xl:text-left"
             >
               Przekazać rolę głowy rodziny?
             </h2>
@@ -739,7 +739,7 @@ export default function FamilyPageContent({
                 type="button"
                 disabled={isPending}
                 onClick={handleTransferHead}
-                className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+                className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-[var(--greenText)] px-4 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
               >
                 {isPending ? "Przekazywanie..." : "Potwierdź przekazanie"}
               </button>
@@ -757,13 +757,13 @@ export default function FamilyPageContent({
             aria-labelledby="delete-member-title"
             className="w-full max-w-md rounded-3xl bg-[#FEFEFA] p-6 shadow-xl"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-800">
               <MdDeleteOutline size={25} />
             </div>
 
             <h2
               id="delete-member-title"
-              className="mt-4 text-xl font-extrabold text-[#263C35]"
+              className="mt-4 text-xl font-extrabold text-[#263C35] text-center xl:text-left"
             >
               Usunąć członka rodziny?
             </h2>
@@ -786,7 +786,7 @@ export default function FamilyPageContent({
                 type="button"
                 disabled={isPending}
                 onClick={handleDeleteMember}
-                className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white hover:bg-red-700"
+                className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700"
               >
                 {isPending ? "Usuwanie..." : "Usuń członka"}
               </button>
