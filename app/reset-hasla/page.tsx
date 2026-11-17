@@ -15,14 +15,14 @@ export default async function ResetPasswordPage({
   const token = params.token;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <main className="flex min-h-screen items-center justify-center bg-amber-100/20 px-5 py-10">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-[var(--greenBg)] p-6 shadow-sm sm:p-8">
         <Image
-          src="/logo.png"
+          src="/logo6.png"
           alt="logo"
           width={150}
           height={150}
-          className="object-fit mx-auto mr-[30%] xl:mr-[33%]"
+          className="object-fit mx-auto mb-5"
         />
 
         <div className="">

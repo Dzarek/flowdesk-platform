@@ -80,7 +80,7 @@ LifeHub
             color: #071b33;
           "
         >
-          Life<span style="color: #d39b27;">Hub</span>
+          Life<span style="color: #4c7868;">Hub</span>
         </h1>
       </div>
 
@@ -123,7 +123,7 @@ LifeHub
           style="
             display: inline-block;
             padding: 14px 24px;
-            background-color: #071b33;
+            background-color: #345248;
             color: #ffffff;
             text-decoration: none;
             border-radius: 12px;
@@ -182,5 +182,95 @@ LifeHub
 </body>
 </html>
 `,
+  });
+}
+
+type FamilyInvitationEmailParams = {
+  email: string;
+  familyName: string;
+  inviterName: string;
+  invitationUrl: string;
+  expiresAt: Date;
+};
+
+export async function sendFamilyInvitationEmail({
+  email,
+  familyName,
+  inviterName,
+  invitationUrl,
+  expiresAt,
+}: FamilyInvitationEmailParams) {
+  const formattedExpiry = new Intl.DateTimeFormat("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(expiresAt);
+
+  await transporter.sendMail({
+    from: `"LifeHub" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: `Zaproszenie do rodziny ${familyName} — LifeHub`,
+    text: `
+Cześć!
+
+${inviterName} zaprasza Cię do dołączenia do rodziny "${familyName}" w aplikacji LifeHub.
+
+Aby zaakceptować zaproszenie i dołączyć do rodziny, otwórz poniższy link:
+
+${invitationUrl}
+
+Link jest ważny do: ${formattedExpiry}.
+
+Jeśli nie oczekujesz tego zaproszenia, zignoruj tę wiadomość.
+
+LifeHub
+    `,
+    html: `
+      <div style="margin:0;padding:40px 16px;background:#EDF1E7;font-family:Arial,sans-serif;color:#263C35;">
+        <div style="max-width:560px;margin:0 auto;padding:36px;background:#FEFEFA;border-radius:20px;">
+          <h1 style="margin:0 0 12px;color:#19483D;font-size:28px;">
+            Zaproszenie do LifeHub
+          </h1>
+
+          <p style="font-size:16px;line-height:1.7;">
+            Cześć!
+          </p>
+
+          <p style="font-size:16px;line-height:1.7;">
+            <strong>${inviterName}</strong> zaprasza Cię do dołączenia
+            do rodziny <strong>${familyName}</strong> w aplikacji LifeHub.
+          </p>
+
+          <p style="font-size:15px;line-height:1.7;">
+            Kliknij poniższy przycisk, aby zaakceptować zaproszenie:
+          </p>
+
+          <div style="margin:30px 0;text-align:center;">
+            <a
+              href="${invitationUrl}"
+              style="display:inline-block;padding:15px 28px;background:#287969;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:bold;"
+            >
+              Dołącz do rodziny
+            </a>
+          </div>
+
+          <p style="font-size:13px;line-height:1.6;color:#839087;">
+            Zaproszenie jest ważne do ${formattedExpiry}.
+          </p>
+
+          <p style="font-size:13px;line-height:1.6;color:#839087;">
+            Jeśli nie oczekujesz tego zaproszenia, możesz zignorować tę wiadomość.
+          </p>
+
+          <hr style="margin:28px 0;border:none;border-top:1px solid #DCE4D9;" />
+
+          <p style="margin:0;font-size:13px;color:#839087;">
+            LifeHub — wspólna organizacja codziennego życia.
+          </p>
+        </div>
+      </div>
+    `,
   });
 }

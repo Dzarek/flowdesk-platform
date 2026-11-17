@@ -28,12 +28,14 @@ import {
   MdSearch,
   MdPeopleOutline,
   MdEdit,
+  MdOutlineAdminPanelSettings,
 } from "react-icons/md";
 
 import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
 import {
   createFamilyInvitation,
   revokeFamilyInvitation,
+  transferFamilyHead,
 } from "@/app/(app)/rodzina/actions";
 
 type FilterType = "ALL" | "ADULT" | "CHILD";
@@ -138,12 +140,14 @@ function MemberCard({
   member,
   onDelete,
   onEdit,
+  onTransfer,
   canEdit,
   isFamilyAdmin,
 }: {
   member: FamilyMember;
   onDelete: (member: FamilyMember) => void;
   onEdit: (member: FamilyMember) => void;
+  onTransfer: (member: FamilyMember) => void;
   canEdit: boolean;
   isFamilyAdmin: boolean;
 }) {
@@ -167,6 +171,17 @@ function MemberCard({
         </div>
 
         <div className="flex items-center gap-1">
+          {isFamilyAdmin && member.role === "ADULT" && (
+            <button
+              type="button"
+              onClick={() => onTransfer(member)}
+              aria-label={`Przekaż rolę głowy rodziny osobie: ${member.name}`}
+              title="Przekaż rolę głowy rodziny"
+              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-[#E2F0EB] hover:text-[#287969]"
+            >
+              <MdOutlineAdminPanelSettings size={21} />
+            </button>
+          )}
           {canEdit && (
             <button
               type="button"
@@ -225,11 +240,13 @@ type FamilyInvitationItem = {
 type FamilyPageContentProps = {
   initialMembers: FamilyMember[];
   initialInvitations: FamilyInvitationItem[];
+  familyName: string;
 };
 
 export default function FamilyPageContent({
   initialMembers,
   initialInvitations,
+  familyName,
 }: FamilyPageContentProps) {
   const [members, setMembers] = useState<FamilyMember[]>(initialMembers);
   const router = useRouter();
@@ -245,8 +262,14 @@ export default function FamilyPageContent({
   const [memberToDelete, setMemberToDelete] = useState<FamilyMember | null>(
     null,
   );
+  const [memberToTransfer, setMemberToTransfer] = useState<FamilyMember | null>(
+    null,
+  );
+
   const [error, setError] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -256,6 +279,7 @@ export default function FamilyPageContent({
   const [invitations, setInvitations] =
     useState<FamilyInvitationItem[]>(initialInvitations);
   const [invitationError, setInvitationError] = useState("");
+  const [inviteSuccess, setInviteSuccess] = useState(false);
 
   useEffect(() => {
     setInvitations(initialInvitations);
@@ -277,21 +301,23 @@ export default function FamilyPageContent({
   const filteredMembers = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pl-PL");
 
-    return members.filter((member) => {
-      const matchesFilter =
-        filter === "ALL" ||
-        (filter === "ADULT" &&
-          (member.role === "HEAD" || member.role === "ADULT")) ||
-        (filter === "CHILD" && member.role === "CHILD");
+    return members
+      .filter((member) => {
+        const matchesFilter =
+          filter === "ALL" ||
+          (filter === "ADULT" &&
+            (member.role === "HEAD" || member.role === "ADULT")) ||
+          (filter === "CHILD" && member.role === "CHILD");
 
-      const matchesSearch = [
-        member.name,
-        member.email ?? "",
-        roleLabels[member.role],
-      ].some((value) => value.toLocaleLowerCase("pl-PL").includes(query));
+        const matchesSearch = [
+          member.name,
+          member.email ?? "",
+          roleLabels[member.role],
+        ].some((value) => value.toLocaleLowerCase("pl-PL").includes(query));
 
-      return matchesFilter && matchesSearch;
-    });
+        return matchesFilter && matchesSearch;
+      })
+      .sort((a, b) => Number(b.isCurrentUser) - Number(a.isCurrentUser));
   }, [members, filter, search]);
 
   function openModal() {
@@ -305,6 +331,8 @@ export default function FamilyPageContent({
     setPhotoPreview(null);
     setError("");
     setIsModalOpen(true);
+    setSelectedAvatar(null);
+    setRemoveAvatar(false);
   }
 
   function closeModal() {
@@ -312,18 +340,26 @@ export default function FamilyPageContent({
     setEditingMember(null);
     setPhotoPreview(null);
     setError("");
+    setSelectedAvatar(null);
+    setRemoveAvatar(false);
   }
 
   async function handleAddMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    const result = await createChild({
-      name: form.name,
-      email: form.email,
-      roleDescription: form.roleDescription,
-      color: "#E4EBD5",
-    });
+    const formData = new FormData();
+
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("roleDescription", form.roleDescription);
+    formData.append("color", "#E4EBD5");
+
+    if (selectedAvatar) {
+      formData.append("avatar", selectedAvatar);
+    }
+
+    const result = await createChild(formData);
 
     if (!result.success) {
       setError(result.error ?? "Nie udało się dodać dziecka.");
@@ -360,33 +396,27 @@ export default function FamilyPageContent({
   function openInviteModal() {
     setInviteEmail("");
     setInviteMessage("");
+    setInviteSuccess(false);
     setIsInviteModalOpen(true);
   }
 
   async function handleInviteMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setInviteMessage("");
+    setInviteSuccess(false);
 
     const result = await createFamilyInvitation(inviteEmail);
 
     if (!result.success) {
-      setInviteMessage(result.error ?? "Nie udało się utworzyć zaproszenia.");
+      setInviteMessage(result.error ?? "Nie udało się wysłać zaproszenia.");
       return;
     }
 
-    setIsInviteModalOpen(false);
-    setInviteEmail("");
+    setInviteSuccess(true);
+    setInviteMessage(`Zaproszenie zostało wysłane na adres ${inviteEmail}.`);
 
-    if (result.invitationUrl) {
-      try {
-        await navigator.clipboard.writeText(result.invitationUrl);
-        setInviteMessage("Zaproszenie utworzono. Link skopiowano do schowka.");
-      } catch {
-        setInviteMessage(
-          `Zaproszenie utworzono. Link: ${result.invitationUrl}`,
-        );
-      }
-    }
+    setInviteEmail("");
 
     router.refresh();
   }
@@ -411,6 +441,8 @@ export default function FamilyPageContent({
     });
 
     setPhotoPreview(member.img);
+    setSelectedAvatar(null);
+    setRemoveAvatar(false);
     setIsModalOpen(true);
   }
 
@@ -421,12 +453,19 @@ export default function FamilyPageContent({
 
     setError("");
 
-    const result = await updateFamilyMember(editingMember.id, {
-      name: form.name,
-      email: form.email,
-      roleDescription: form.roleDescription,
-      color: editingMember.color,
-    });
+    const formData = new FormData();
+
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("roleDescription", form.roleDescription);
+    formData.append("color", editingMember.color);
+    formData.append("removeAvatar", String(removeAvatar));
+
+    if (selectedAvatar) {
+      formData.append("avatar", selectedAvatar);
+    }
+
+    const result = await updateFamilyMember(editingMember.id, formData);
 
     if (!result.success) {
       setError(result.error ?? "Nie udało się zaktualizować profilu.");
@@ -455,6 +494,25 @@ export default function FamilyPageContent({
     });
   }
 
+  async function handleTransferHead() {
+    if (!memberToTransfer || memberToTransfer.role !== "ADULT") return;
+
+    setError("");
+
+    const result = await transferFamilyHead(memberToTransfer.id);
+
+    if (!result.success) {
+      setError(result.message ?? "Nie udało się przekazać roli HEAD.");
+      return;
+    }
+
+    setMemberToTransfer(null);
+
+    startTransition(() => {
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-7 xl:pb-6">
       {/* Nagłówek i ilustracja */}
@@ -463,11 +521,11 @@ export default function FamilyPageContent({
           <div className="py-8">
             <div className="mb-4 flex items-center ml-2 xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
               <MdFamilyRestroom size={20} />
-              <span>Rodzina</span>
+              <span>To my!</span>
             </div>
 
             <h1 className="text-3xl uppercase text-center xl:text-left font-bold tracking-tight text-[var(--greenText)] sm:text-4xl">
-              Nasza Rodzina
+              Rodzina {familyName}
             </h1>
 
             <p className="mt-4 text-center xl:text-left max-w-lg text-base leading-7 text-[#718078] ">
@@ -564,6 +622,7 @@ export default function FamilyPageContent({
                 onEdit={openEditModal}
                 canEdit={canEditMember(member) || false}
                 isFamilyAdmin={isFamilyAdmin}
+                onTransfer={setMemberToTransfer}
               />
             ))}
           </div>
@@ -822,8 +881,14 @@ export default function FamilyPageContent({
 
                         if (!file) return;
 
-                        if (!file.type.startsWith("image/")) {
-                          setError("Wybierz plik graficzny.");
+                        const allowedTypes = [
+                          "image/jpeg",
+                          "image/png",
+                          "image/webp",
+                        ];
+
+                        if (!allowedTypes.includes(file.type)) {
+                          setError("Dozwolone formaty zdjęć: JPG, PNG i WebP.");
                           event.target.value = "";
                           return;
                         }
@@ -838,9 +903,15 @@ export default function FamilyPageContent({
 
                         reader.onload = () => {
                           if (typeof reader.result === "string") {
+                            setSelectedAvatar(file);
                             setPhotoPreview(reader.result);
+                            setRemoveAvatar(false);
                             setError("");
                           }
+                        };
+
+                        reader.onerror = () => {
+                          setError("Nie udało się odczytać zdjęcia.");
                         };
 
                         reader.readAsDataURL(file);
@@ -854,7 +925,17 @@ export default function FamilyPageContent({
                     {photoPreview && (
                       <button
                         type="button"
-                        onClick={() => setPhotoPreview(null)}
+                        onClick={() => {
+                          setPhotoPreview(null);
+                          setSelectedAvatar(null);
+                          setRemoveAvatar(true);
+
+                          const input = document.getElementById(
+                            "member-photo",
+                          ) as HTMLInputElement | null;
+
+                          if (input) input.value = "";
+                        }}
                         className="mt-1 cursor-pointer text-xs font-semibold text-[#B46D64] hover:underline"
                       >
                         Usuń zdjęcie
@@ -984,11 +1065,15 @@ export default function FamilyPageContent({
               </div>
 
               {inviteMessage && (
-                <p role="alert" className="text-sm font-medium text-red-600">
+                <p
+                  role={inviteSuccess ? "status" : "alert"}
+                  className={`text-sm font-medium ${
+                    inviteSuccess ? "text-[#287969]" : "text-red-600"
+                  }`}
+                >
                   {inviteMessage}
                 </p>
               )}
-
               <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                 <button
                   type="button"
@@ -1010,6 +1095,72 @@ export default function FamilyPageContent({
           </section>
         </div>
       )}
+
+      {/* Potwierdzenie przekazania roli HEAD */}
+      {memberToTransfer && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#193C32]/40 p-4 backdrop-blur-sm">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="transfer-head-title"
+            className="w-full max-w-md rounded-3xl bg-[#FEFEFA] p-6 shadow-xl"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E2F0EB] text-[#287969]">
+              <MdOutlineAdminPanelSettings size={26} />
+            </div>
+
+            <h2
+              id="transfer-head-title"
+              className="mt-4 text-xl font-extrabold text-[#263C35]"
+            >
+              Przekazać rolę głowy rodziny?
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-[#718078]">
+              Czy na pewno chcesz przekazać rolę ADMINISTRATORA RODZINY osobie{" "}
+              <strong>{memberToTransfer.name}</strong>?
+            </p>
+
+            <div className="mt-4 rounded-xl border border-[#DCE4D9] bg-[#F5F6EE] p-4">
+              <p className="text-sm font-semibold text-[#38544A]">
+                Co się zmieni?
+              </p>
+
+              <ul className="mt-2 space-y-2 text-sm leading-5 text-[#718078]">
+                <li>
+                  • Wybrana osoba otrzyma uprawnienia ADMINISTRATORA RODZINY.
+                </li>
+                <li>• Ty zachowasz konto i profil jako DOROSŁY.</li>
+                <li>
+                  • Utracisz uprawnienia do zarządzania rodziną jako
+                  ADMINISTRATOR RODZINY.
+                </li>
+              </ul>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => setMemberToTransfer(null)}
+                className="cursor-pointer disabled:cursor-not-allowed rounded-xl border border-[#DCE4D9] px-4 py-3 text-sm font-semibold text-[#38544A] hover:bg-[#F5F6EE]"
+              >
+                Anuluj
+              </button>
+
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleTransferHead}
+                className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+              >
+                {isPending ? "Przekazywanie..." : "Potwierdź przekazanie"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {/* Potwierdzenie usunięcia */}
       {memberToDelete && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#193C32]/40 p-4 backdrop-blur-sm">

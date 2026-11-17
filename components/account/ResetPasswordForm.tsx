@@ -33,7 +33,7 @@ const PasswordField = ({
   <div>
     <label
       htmlFor={id}
-      className="mb-2 block text-sm font-medium text-slate-700"
+      className="mb-2 block text-sm font-medium text-slate-300"
     >
       {label}
     </label>
@@ -125,11 +125,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           <FaCheck size={28} />
         </div>
 
-        <h2 className="mt-5 text-xl font-bold text-slate-900">
+        <h2 className="mt-5 text-xl font-bold text-slate-100">
           Hasło zostało zmienione
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-slate-300">
           Możesz teraz zalogować się przy użyciu nowego hasła.
         </p>
 
@@ -138,10 +138,10 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           className="
             mt-6 inline-flex
             rounded-xl
-            bg-[#071b33]
+            bg-[var(--greenText)]
             px-5 py-3
             text-sm font-semibold text-white
-            transition hover:bg-[#102a46]
+            transition hover:bg-[var(--greenBg)]
           "
         >
           Przejdź do logowania
@@ -153,11 +153,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-100">
           Ustaw nowe hasło
         </h1>
 
-        <p className="mt-2 text-base text-slate-500">
+        <p className="mt-2 text-base text-slate-200">
           Wprowadź nowe hasło do swojego konta
         </p>
       </div>
@@ -194,11 +194,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           mt-6 flex w-full
           items-center justify-center gap-2
           rounded-xl
-          bg-[#071b33]
+          bg-[var(--greenText)]
           px-5 py-3
           text-sm font-semibold text-white
           transition
-          hover:bg-[#102a46]
+          hover:bg-[var(--greenText)]/80
           disabled:cursor-not-allowed
           disabled:opacity-50
         "

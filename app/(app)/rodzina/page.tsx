@@ -44,6 +44,15 @@ export default async function FamilyPage() {
     },
   });
 
+  const family = await prisma.family.findUnique({
+    where: {
+      id: user.familyId,
+    },
+    select: {
+      name: true,
+    },
+  });
+
   const initialMembers = members.map((member) => ({
     id: member.id,
     name: member.name,
@@ -97,6 +106,7 @@ export default async function FamilyPage() {
     <FamilyPageContent
       initialMembers={initialMembers}
       initialInvitations={initialInvitations}
+      familyName={family?.name ?? "Nasza Rodzina"}
     />
   );
 }

@@ -26,8 +26,13 @@ export default function ForgotPasswordForm() {
 
       setSent(true);
     } catch (error) {
-      console.error(error);
-      toast.error("Nie udało się wysłać wiadomości.");
+      console.error("PASSWORD RESET ERROR:", error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Nie udało się wysłać wiadomości.",
+      );
     } finally {
       setLoading(false);
     }
@@ -35,23 +40,23 @@ export default function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className="rounded-2xl border border-[#d39b27] bg-[#d39b27]/10 p-6 text-center">
+      <div className="rounded-2xl  p-6 text-center ">
         <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#d39b27]/20 text-[#d39b27]">
           <MdMail size={22} />
         </div>
 
-        <h2 className="mt-4 text-lg font-bold text-slate-900">
+        <h2 className="mt-4 text-lg font-bold text-white">
           Sprawdź swoją skrzynkę
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+        <p className="mt-2 text-sm leading-6 text-slate-200">
           Jeśli konto z podanym adresem istnieje, wysłaliśmy wiadomość z
           instrukcją zmiany hasła.
         </p>
 
         <Link
           href="/"
-          className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#071b33] hover:text-[#d39b27]"
+          className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white p-2 px-4 rounded-xl bg-[#d39b27]/20 hover:text-[#d39b27]"
         >
           <FaArrowLeft size={16} />
           Wróć do logowania
@@ -63,18 +68,18 @@ export default function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-100">
           Resetowanie hasła
         </h1>
 
-        <p className="mt-2 text-base text-slate-500">
+        <p className="mt-2 text-base text-slate-200">
           Podaj adres e-mail powiązany z Twoim kontem.
         </p>
       </div>
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block text-sm font-medium text-slate-700"
+          className="mb-2 block text-sm font-medium text-slate-300"
         >
           Adres e-mail
         </label>
@@ -117,11 +122,11 @@ export default function ForgotPasswordForm() {
           mt-5 flex w-full
           items-center justify-center gap-2
           rounded-xl
-          bg-[#071b33]
+          bg-[var(--greenText)]
           px-5 py-3
           text-sm font-semibold text-white
           transition
-          hover:bg-[#102a46]
+          hover:bg-[var(--greenText)]/80
           disabled:cursor-not-allowed
           disabled:opacity-50
           cursor-pointer

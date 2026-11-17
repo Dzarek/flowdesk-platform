@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { supabaseStorage, FAMILY_AVATARS_BUCKET } from "@/lib/supabase/storage";
+import { sendFamilyInvitationEmail } from "@/lib/mail";
 
 type ActionResult = {
   success: boolean;
@@ -30,7 +32,13 @@ async function getFamilyContext() {
     where: { id: session.user.id },
     select: {
       id: true,
+      name: true,
       familyId: true,
+      family: {
+        select: {
+          name: true,
+        },
+      },
       familyMember: {
         select: {
           id: true,
@@ -40,7 +48,7 @@ async function getFamilyContext() {
     },
   });
 
-  if (!user?.familyId || !user.familyMember) {
+  if (!user?.familyId || !user.familyMember || !user.family) {
     return null;
   }
 
@@ -49,6 +57,8 @@ async function getFamilyContext() {
     familyId: user.familyId,
     memberId: user.familyMember.id,
     role: user.familyMember.role,
+    inviterName: user.name,
+    familyName: user.family?.name || "...",
   };
 }
 
@@ -84,9 +94,122 @@ function validateMemberInput(input: MemberInput) {
     },
   };
 }
+function readMemberFormData(formData: FormData) {
+  const input: MemberInput = {
+    name: String(formData.get("name") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    roleDescription: String(formData.get("roleDescription") ?? ""),
+    color: String(formData.get("color") ?? "#E4EBD5"),
+  };
+
+  const avatarValue = formData.get("avatar");
+
+  const avatar =
+    avatarValue instanceof File && avatarValue.size > 0 ? avatarValue : null;
+
+  const removeAvatar = formData.get("removeAvatar") === "true";
+
+  return {
+    input,
+    avatar,
+    removeAvatar,
+  };
+}
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+
+const ALLOWED_AVATAR_TYPES = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+} as const;
+
+async function uploadFamilyAvatar(
+  file: File,
+  familyId: string,
+  memberId: string,
+) {
+  if (file.size === 0 || file.size > MAX_AVATAR_SIZE) {
+    throw new Error("Zdjęcie musi mieć maksymalnie 5 MB.");
+  }
+
+  const extension =
+    ALLOWED_AVATAR_TYPES[file.type as keyof typeof ALLOWED_AVATAR_TYPES];
+
+  if (!extension) {
+    throw new Error("Dozwolone formaty: JPG, PNG i WebP.");
+  }
+
+  const path = `${familyId}/${memberId}/${randomUUID()}.${extension}`;
+
+  const { error } = await supabaseStorage.storage
+    .from(FAMILY_AVATARS_BUCKET)
+    .upload(path, file, {
+      contentType: file.type,
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("Supabase avatar upload error:", error);
+    throw new Error("Nie udało się przesłać zdjęcia.");
+  }
+
+  const { data } = supabaseStorage.storage
+    .from(FAMILY_AVATARS_BUCKET)
+    .getPublicUrl(path);
+
+  return data.publicUrl;
+}
+
+async function deleteFamilyAvatar(
+  imageUrl: string | null,
+  familyId: string,
+  memberId: string,
+) {
+  if (!imageUrl || !familyId || !memberId) return;
+
+  try {
+    const url = new URL(imageUrl);
+    const supabaseUrl = process.env.SUPABASE_URL;
+
+    if (!supabaseUrl) return;
+
+    // Akceptujemy wyłącznie adres z naszego projektu Supabase.
+    if (url.origin !== new URL(supabaseUrl).origin) return;
+
+    const marker = `/storage/v1/object/public/${FAMILY_AVATARS_BUCKET}/`;
+
+    const markerIndex = url.pathname.indexOf(marker);
+
+    if (markerIndex === -1) return;
+
+    const path = decodeURIComponent(
+      url.pathname.slice(markerIndex + marker.length),
+    );
+
+    // Plik musi należeć do konkretnej rodziny i profilu.
+    const expectedPrefix = `${familyId}/${memberId}/`;
+
+    if (!path.startsWith(expectedPrefix)) return;
+
+    const { error } = await supabaseStorage.storage
+      .from(FAMILY_AVATARS_BUCKET)
+      .remove([path]);
+
+    if (error) {
+      console.error("Supabase avatar delete error:", error);
+    }
+  } catch (error) {
+    console.error("Avatar cleanup error:", error);
+  }
+}
 
 // Dodawanie dziecka
-export async function createChild(input: MemberInput): Promise<ActionResult> {
+export async function createChild(formData: FormData): Promise<ActionResult> {
+  let createdMemberId: string | null = null;
+  let uploadedImageUrl: string | null = null;
+
   try {
     const context = await getFamilyContext();
 
@@ -104,6 +227,7 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
       };
     }
 
+    const { input, avatar } = readMemberFormData(formData);
     const validation = validateMemberInput(input);
 
     if (!validation.data) {
@@ -116,10 +240,7 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
       const existingMember = await prisma.familyMember.findFirst({
         where: {
           familyId: context.familyId,
-          email: {
-            equals: email,
-            mode: "insensitive",
-          },
+          email: { equals: email, mode: "insensitive" },
         },
         select: { id: true },
       });
@@ -134,10 +255,7 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
       const existingInvitation = await prisma.familyInvitation.findFirst({
         where: {
           familyId: context.familyId,
-          email: {
-            equals: email,
-            mode: "insensitive",
-          },
+          email: { equals: email, mode: "insensitive" },
           status: "PENDING",
           expiresAt: { gt: new Date() },
         },
@@ -152,7 +270,7 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
       }
     }
 
-    await prisma.familyMember.create({
+    const member = await prisma.familyMember.create({
       data: {
         name,
         email,
@@ -161,7 +279,23 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
         color,
         familyId: context.familyId,
       },
+      select: { id: true },
     });
+
+    createdMemberId = member.id;
+
+    if (avatar) {
+      uploadedImageUrl = await uploadFamilyAvatar(
+        avatar,
+        context.familyId,
+        member.id,
+      );
+
+      await prisma.familyMember.update({
+        where: { id: member.id },
+        data: { imageUrl: uploadedImageUrl },
+      });
+    }
 
     revalidatePath("/rodzina");
 
@@ -169,9 +303,32 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
   } catch (error) {
     console.error("createChild error:", error);
 
+    // Sprzątamy plik i profil, jeśli tworzenie nie zakończyło się poprawnie.
+    if (createdMemberId) {
+      if (uploadedImageUrl) {
+        await deleteFamilyAvatar(
+          uploadedImageUrl,
+          // Profil został utworzony w kontekście tej rodziny.
+          // Pobieramy jego familyId z rekordu, jeśli jest dostępny.
+          (
+            await prisma.familyMember.findUnique({
+              where: { id: createdMemberId },
+              select: { familyId: true },
+            })
+          )?.familyId ?? "",
+          createdMemberId,
+        );
+      }
+
+      await prisma.familyMember.deleteMany({
+        where: { id: createdMemberId },
+      });
+    }
+
     return {
       success: false,
-      error: "Nie udało się dodać dziecka.",
+      error:
+        error instanceof Error ? error.message : "Nie udało się dodać dziecka.",
     };
   }
 }
@@ -179,8 +336,10 @@ export async function createChild(input: MemberInput): Promise<ActionResult> {
 // Edycja profilu
 export async function updateFamilyMember(
   memberId: string,
-  input: MemberInput,
+  formData: FormData,
 ): Promise<ActionResult> {
+  let uploadedImageUrl: string | null = null;
+
   try {
     const context = await getFamilyContext();
 
@@ -200,6 +359,7 @@ export async function updateFamilyMember(
         id: true,
         role: true,
         userId: true,
+        imageUrl: true,
       },
     });
 
@@ -224,6 +384,7 @@ export async function updateFamilyMember(
       };
     }
 
+    const { input, avatar, removeAvatar } = readMemberFormData(formData);
     const validation = validateMemberInput(input);
 
     if (!validation.data) {
@@ -237,10 +398,7 @@ export async function updateFamilyMember(
         where: {
           familyId: context.familyId,
           id: { not: memberId },
-          email: {
-            equals: email,
-            mode: "insensitive",
-          },
+          email: { equals: email, mode: "insensitive" },
         },
         select: { id: true },
       });
@@ -253,6 +411,20 @@ export async function updateFamilyMember(
       }
     }
 
+    if (avatar) {
+      uploadedImageUrl = await uploadFamilyAvatar(
+        avatar,
+        context.familyId,
+        member.id,
+      );
+    }
+
+    const nextImageUrl = avatar
+      ? uploadedImageUrl
+      : removeAvatar
+        ? null
+        : member.imageUrl;
+
     await prisma.familyMember.update({
       where: { id: memberId },
       data: {
@@ -260,8 +432,14 @@ export async function updateFamilyMember(
         email,
         roleDescription,
         color,
+        imageUrl: nextImageUrl,
       },
     });
+
+    // Stare zdjęcie usuwamy dopiero po udanym zapisie nowego URL.
+    if (member.imageUrl && member.imageUrl !== nextImageUrl) {
+      await deleteFamilyAvatar(member.imageUrl, context.familyId, member.id);
+    }
 
     revalidatePath("/rodzina");
 
@@ -269,9 +447,22 @@ export async function updateFamilyMember(
   } catch (error) {
     console.error("updateFamilyMember error:", error);
 
+    // Jeśli nowy plik został wysłany, ale zapis profilu się nie udał,
+    // usuwamy tylko ten nowy plik.
+    if (uploadedImageUrl) {
+      await deleteFamilyAvatar(
+        uploadedImageUrl,
+        (await getFamilyContext())?.familyId ?? "",
+        memberId,
+      );
+    }
+
     return {
       success: false,
-      error: "Nie udało się zaktualizować profilu.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nie udało się zaktualizować profilu.",
     };
   }
 }
@@ -362,7 +553,6 @@ export async function deleteFamilyMember(memberId: string) {
 type InvitationResult = {
   success: boolean;
   error?: string;
-  invitationUrl?: string;
 };
 
 export async function createFamilyInvitation(
@@ -489,16 +679,6 @@ export async function createFamilyInvitation(
 
     const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    await prisma.familyInvitation.create({
-      data: {
-        email,
-        tokenHash,
-        familyId: context.familyId,
-        invitedByUserId: context.userId,
-        expiresAt,
-      },
-    });
-
     const baseUrl = process.env.NEXTAUTH_URL;
 
     if (!baseUrl) {
@@ -507,11 +687,49 @@ export async function createFamilyInvitation(
 
     const invitationUrl = new URL(`/zaproszenie/${token}`, baseUrl).toString();
 
+    const invitation = await prisma.familyInvitation.create({
+      data: {
+        email,
+        tokenHash,
+        familyId: context.familyId,
+        invitedByUserId: context.userId,
+        expiresAt,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    try {
+      await sendFamilyInvitationEmail({
+        email,
+        familyName: context.familyName,
+        inviterName: context.inviterName,
+        invitationUrl,
+        expiresAt,
+      });
+    } catch (emailError) {
+      console.error("Family invitation email error:", emailError);
+
+      // Nie pozostawiamy aktywnego zaproszenia, którego nie udało się wysłać.
+      await prisma.familyInvitation.update({
+        where: { id: invitation.id },
+        data: {
+          status: "REVOKED",
+          revokedAt: new Date(),
+        },
+      });
+
+      return {
+        success: false,
+        error: "Nie udało się wysłać wiadomości e-mail. Spróbuj ponownie.",
+      };
+    }
+
     revalidatePath("/rodzina");
 
     return {
       success: true,
-      invitationUrl,
     };
   } catch (error) {
     console.error("createFamilyInvitation error:", error);
