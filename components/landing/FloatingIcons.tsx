@@ -46,6 +46,24 @@ export default function FloatingIcons() {
 
   const [visibility, setVisibility] = useState([true, true, true]);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+
+    const updateBreakpoint = () => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    updateBreakpoint();
+
+    mediaQuery.addEventListener("change", updateBreakpoint);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateBreakpoint);
+    };
+  }, []);
+
   // Pomiar wymiarów sekcji
   useEffect(() => {
     const parent = svgRef.current?.parentElement;
@@ -148,9 +166,8 @@ export default function FloatingIcons() {
     ${width} ${height - mobileRadius + mobileK},
     ${width} ${height - mobileRadius}
 `;
-  const isMobile = width < 1024;
+
   const activePath = isMobile ? mobilePath : path;
-  console.log(width);
 
   return (
     <svg

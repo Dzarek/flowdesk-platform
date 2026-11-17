@@ -8,240 +8,32 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  MdClose,
+  MdDeleteOutline,
+  MdMailOutline,
+  MdOutlinePerson,
+  MdOutlineAdminPanelSettings,
+  MdAdd,
+} from "react-icons/md";
 import {
   createChild,
   updateFamilyMember,
   deleteFamilyMember,
-} from "@/app/(app)/rodzina/actions";
-import Image from "next/image";
-import {
-  MdAdd,
-  MdCalendarToday,
-  MdClose,
-  MdDeleteOutline,
-  MdFamilyRestroom,
-  MdMailOutline,
-  MdOutlineChildCare,
-  MdOutlinePerson,
-  MdOutlineShield,
-  MdPersonAddAlt1,
-  MdSearch,
-  MdPeopleOutline,
-  MdEdit,
-  MdOutlineAdminPanelSettings,
-} from "react-icons/md";
-
-import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
-import {
   createFamilyInvitation,
   revokeFamilyInvitation,
   transferFamilyHead,
 } from "@/app/(app)/rodzina/actions";
-
-type FilterType = "ALL" | "ADULT" | "CHILD";
-
-const roleLabels: Record<FamilyMemberRole, string> = {
-  HEAD: "Głowa rodziny",
-  ADULT: "Dorosły członek",
-  CHILD: "Dziecko",
-};
-
-// const roleDescriptions: Record<FamilyMemberRole, string> = {
-//   HEAD: "Organizuje domowe sprawy i dba o wspólną organizację.",
-//   ADULT: "Wspiera domową organizację i codzienne sprawy.",
-//   CHILD: "Uczy się samodzielności i uczestniczy w życiu rodziny.",
-// };
-
-const roleStyles: Record<FamilyMemberRole, string> = {
-  HEAD: "bg-[#E2F0E7] text-[#287969]",
-  ADULT: "bg-[#F7EDE4] text-[#986A4A]",
-  CHILD: "bg-[#E7EEF8] text-[#5876A5]",
-};
-
-const roleIcons: Record<FamilyMemberRole, typeof MdOutlinePerson> = {
-  HEAD: MdOutlineShield,
-  ADULT: MdOutlinePerson,
-  CHILD: MdOutlineChildCare,
-};
-
-function getInitials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
-
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("pl-PL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${date}T12:00:00`));
-}
-
-function StatCard({
-  icon: Icon,
-  value,
-  label,
-  iconBg,
-  iconColor,
-}: {
-  icon: typeof MdPeopleOutline;
-  value: number;
-  label: string;
-  iconBg: string;
-  iconColor: string;
-}) {
-  return (
-    <div className="flex min-w-0 items-center justify-center gap-2 xl:gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-3 xl:p-4">
-      <div
-        className={`flex h-10 w-10 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-full ${iconBg} ${iconColor}`}
-      >
-        <Icon className="size-5 xl:size-6" />
-      </div>
-
-      <p className="text-xl xl:text-xl font-extrabold leading-none text-[#263C35]">
-        {value}
-      </p>
-      <div className="min-w-0">
-        <p className="mt-1 text-sm text-[#839087]">{label}</p>
-      </div>
-    </div>
-  );
-}
-
-function MemberAvatar({ member }: { member: FamilyMember }) {
-  return (
-    <div
-      className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full ring-4 ring-white"
-      style={{ backgroundColor: member.color }}
-    >
-      {member.img ? (
-        <Image
-          src={member.img}
-          alt={`Zdjęcie profilowe: ${member.name}`}
-          fill
-          sizes="120px"
-          className="object-cover"
-        />
-      ) : (
-        <span className="text-2xl font-extrabold text-[#287969]">
-          {getInitials(member.name)}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function MemberCard({
-  member,
-  onDelete,
-  onEdit,
-  onTransfer,
-  canEdit,
-  isFamilyAdmin,
-}: {
-  member: FamilyMember;
-  onDelete: (member: FamilyMember) => void;
-  onEdit: (member: FamilyMember) => void;
-  onTransfer: (member: FamilyMember) => void;
-  canEdit: boolean;
-  isFamilyAdmin: boolean;
-}) {
-  const RoleIcon = roleIcons[member.role];
-
-  return (
-    <article className="group min-w-0 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-5 transition-colors hover:border-[#B8D2C4]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="relative z-10">
-          <MemberAvatar member={member} />
-          <div
-            className="absolute top-1/2 -translate-y-1/2 left-10 -z-10 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full ring-4 ring-white"
-            style={{ backgroundColor: member.color, opacity: 0.3 }}
-          ></div>
-          <span
-            className={`absolute bottom-2 left-25 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${roleStyles[member.role]}`}
-          >
-            <RoleIcon size={15} />
-            {roleLabels[member.role]}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {isFamilyAdmin && member.role === "ADULT" && (
-            <button
-              type="button"
-              onClick={() => onTransfer(member)}
-              aria-label={`Przekaż rolę głowy rodziny osobie: ${member.name}`}
-              title="Przekaż rolę głowy rodziny"
-              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-[#E2F0EB] hover:text-[#287969]"
-            >
-              <MdOutlineAdminPanelSettings size={21} />
-            </button>
-          )}
-          {canEdit && (
-            <button
-              type="button"
-              onClick={() => onEdit(member)}
-              aria-label={`Edytuj profil: ${member.name}`}
-              title="Edytuj profil"
-              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-[#E2F0EB] hover:text-[#287969]"
-            >
-              <MdEdit size={20} />
-            </button>
-          )}
-
-          {isFamilyAdmin && member.role !== "HEAD" && !member.isCurrentUser && (
-            <button
-              type="button"
-              onClick={() => onDelete(member)}
-              aria-label={`Usuń członka: ${member.name}`}
-              title="Usuń członka"
-              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
-            >
-              <MdDeleteOutline size={21} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <h3 className="mt-5 truncate text-lg font-extrabold text-[#263C35]">
-        {member.name}
-        {member.isCurrentUser && (
-          <span className="ml-2 text-xs font-medium text-[#839087]">(Ty)</span>
-        )}
-      </h3>
-
-      <div className="mt-1 flex min-w-0 items-center gap-2 text-sm text-[#839087]">
-        <MdMailOutline className="shrink-0" size={17} />
-        <span className="truncate">{member.email ?? "Brak adresu e-mail"}</span>
-      </div>
-
-      <p className="mt-4 min-h-[60px] text-sm leading-6 text-[#718078]">
-        {member.roleDescription || "Brak opisu"}
-      </p>
-
-      <div className="mt-4 flex items-center gap-2 border-t border-[#E9EEE6] pt-4 text-xs text-[#839087]">
-        <MdCalendarToday size={16} />
-        <span>Dołączenie: {formatDate(member.joinedAt)}</span>
-      </div>
-    </article>
-  );
-}
-type FamilyInvitationItem = {
-  id: string;
-  email: string;
-  createdAt: string;
-  expiresAt: string;
-};
-type FamilyPageContentProps = {
-  initialMembers: FamilyMember[];
-  initialInvitations: FamilyInvitationItem[];
-  familyName: string;
-};
+import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
+import { roleLabels } from "@/components/family/constants";
+import FamilyHeader from "@/components/family/FamilyHeader";
+import FamilyMembersSection from "@/components/family/FamilyMembersSection";
+import type {
+  FamilyInvitationItem,
+  FamilyPageContentProps,
+  FilterType,
+} from "@/components/family/types";
 
 export default function FamilyPageContent({
   initialMembers,
@@ -296,7 +88,7 @@ export default function FamilyPageContent({
     (member) => member.role === "HEAD" || member.role === "ADULT",
   ).length;
 
-  const children = members.filter((member) => member.role === "CHILD").length;
+  const childrenF = members.filter((member) => member.role === "CHILD").length;
 
   const filteredMembers = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pl-PL");
@@ -424,8 +216,11 @@ export default function FamilyPageContent({
   const currentUser = members.find((member) => member.isCurrentUser);
   const isFamilyAdmin = currentUser?.role === "HEAD";
 
-  const canEditMember = (member: FamilyMember) => {
-    return isFamilyAdmin || (member.isCurrentUser && member.role === "ADULT");
+  const canEditMember = (member: FamilyMember): boolean => {
+    return (
+      isFamilyAdmin ||
+      (Boolean(member.isCurrentUser) && member.role === "ADULT")
+    );
   };
 
   function openEditModal(member: FamilyMember) {
@@ -515,242 +310,34 @@ export default function FamilyPageContent({
 
   return (
     <div className="space-y-7 xl:pb-6">
-      {/* Nagłówek i ilustracja */}
-      <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE]">
-        <div className="xl:h-[230px] relative z-10 grid items-center gap-5 pl-4  sm:pl-8 lg:min-h-[330px] lg:grid-cols-2 lg:pl-10">
-          <div className="py-8">
-            <div className="mb-4 flex items-center ml-2 xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
-              <MdFamilyRestroom size={20} />
-              <span>To my!</span>
-            </div>
+      <FamilyHeader
+        familyName={familyName}
+        total={members.length}
+        adults={adults}
+        childrenF={childrenF}
+      />
 
-            <h1 className="text-3xl uppercase text-center xl:text-left font-bold tracking-tight text-[var(--greenText)] sm:text-4xl">
-              Rodzina {familyName}
-            </h1>
-
-            <p className="mt-4 text-center xl:text-left max-w-lg text-base leading-7 text-[#718078] ">
-              Wspólne obowiązki, plany i ważne chwile. Zarządzaj członkami
-              rodziny i budujcie razem lepiej zorganizowany dom.
-            </p>
-
-            <div className="mt-6 flex flex-wrap justify-center xl:justify-start gap-2 xl:gap-3">
-              <div className="w-[60%] xl:w-auto">
-                <StatCard
-                  icon={MdPeopleOutline}
-                  value={members.length}
-                  label="Osoby"
-                  iconBg="bg-[#E4EEDC]"
-                  iconColor="text-[#287969]"
-                />
-              </div>
-              <StatCard
-                icon={MdOutlinePerson}
-                value={adults}
-                label="Dorosłych"
-                iconBg="bg-[#FBE9E2]"
-                iconColor="text-[#C86F53]"
-              />
-              <StatCard
-                icon={MdOutlineChildCare}
-                value={children}
-                label="Dzieci"
-                iconBg="bg-[#E4EDF8]"
-                iconColor="text-[#5876A5]"
-              />
-            </div>
-          </div>
-          <div className="relative hidden h-full lg:block">
-            <Image
-              src="/images/family-illustration.png"
-              alt="Ilustracja rodziny spędzającej wspólnie czas"
-              fill
-              priority
-              sizes="(min-width: 1024px) 50vw, 0px"
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Lista członków */}
-      <section className="rounded-3xl border border-[#E4E9E0] bg-[#FEFEFA] p-4 sm:p-6 py-10 xl:py-6 lg:p-7">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2 justify-center xl:justify-start">
-            {(
-              [
-                ["ALL", `Wszyscy (${members.length})`],
-                ["ADULT", `Dorośli (${adults})`],
-                ["CHILD", `Dzieci (${children})`],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFilter(value)}
-                className={`rounded-full px-3 xl:px-5 py-3 text-sm font-semibold transition ${
-                  filter === value
-                    ? "bg-[var(--greenText)] text-white"
-                    : "bg-[#F3F5EF] text-[#38544A] hover:bg-[#E8EEE5]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E0E6DE] bg-[#F8F9F4] px-4 sm:min-w-[250px]">
-              <MdSearch className="shrink-0 text-[#718078]" size={21} />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Szukaj członka rodziny..."
-                aria-label="Szukaj członka rodziny"
-                className="min-w-0 bg-transparent py-3 text-sm text-[#263C35] outline-none placeholder:text-[#98A29B]"
-              />
-            </label>
-          </div>
-        </div>
-
-        {filteredMembers.length > 0 ? (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {filteredMembers.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                onDelete={setMemberToDelete}
-                onEdit={openEditModal}
-                canEdit={canEditMember(member) || false}
-                isFamilyAdmin={isFamilyAdmin}
-                onTransfer={setMemberToTransfer}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-[#DCE4D9] px-5 py-12 text-center">
-            <MdPeopleOutline size={36} className="text-[#839087]" />
-            <p className="mt-3 font-bold text-[#263C35]">
-              Nie znaleziono członków rodziny
-            </p>
-            <p className="mt-1 text-sm text-[#839087]">
-              Zmień wyszukiwanie lub wybierz inny filtr.
-            </p>
-          </div>
-        )}
-
-        {invitations.length > 0 && (
-          <div className="mt-6 rounded-2xl border border-[#DCE4D9] bg-[#F7F9F2] p-5">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2F0EB] text-[#287969]">
-                <MdMailOutline size={22} />
-              </div>
-
-              <div>
-                <h3 className="font-bold text-[#19483D]">Zaproszenia</h3>
-                <p className="text-sm text-[#839087]">
-                  {invitations.length} oczekujących
-                </p>
-              </div>
-            </div>
-
-            {invitationError && (
-              <p role="alert" className="mb-3 text-sm font-medium text-red-600">
-                {invitationError}
-              </p>
-            )}
-
-            <div className="space-y-2">
-              {invitations.map((invitation) => (
-                <div
-                  key={invitation.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E4E9E0] bg-[#FEFEFA] p-4"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <MdMailOutline
-                      size={20}
-                      className="shrink-0 text-[#839087]"
-                    />
-
-                    <div className="min-w-0">
-                      <p className="break-all text-sm font-semibold text-[#263C35]">
-                        {invitation.email}
-                      </p>
-
-                      <p className="mt-1 text-xs text-[#839087]">
-                        Wygasa:{" "}
-                        {new Intl.DateTimeFormat("pl-PL", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        }).format(new Date(invitation.expiresAt))}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-[#F5EBDD] px-3 py-1.5 text-xs font-semibold text-[#8A6840]">
-                      Oczekujące
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => handleRevokeInvitation(invitation.id)}
-                      title="Anuluj zaproszenie"
-                      aria-label={`Anuluj zaproszenie dla ${invitation.email}`}
-                      className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <MdClose size={19} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Panel dodawania */}
-        <div className="flex flex-col xl:flex-row items-center mt-10 xl:gap-4">
-          <button
-            type="button"
-            onClick={openModal}
-            className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-dashed border-[#BFD9C8] bg-[#F7F9F2] p-5 text-left transition hover:bg-[#EFF5EA] sm:p-6"
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D8EADD] text-[#287969]">
-              <MdPersonAddAlt1 size={25} />
-            </span>
-
-            <span className="min-w-0 flex-1">
-              <span className="block font-bold text-[var(--greenText)]">
-                Dodaj dziecko
-              </span>
-              <span className="mt-1 block text-sm text-[#839087]">
-                Przygotuj rodzinę do wspólnej organizacji codziennego życia.
-              </span>
-            </span>
-          </button>
-          {/* Panel zaproszenia */}
-
-          <button
-            type="button"
-            onClick={openInviteModal}
-            className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-dashed border-[#BFD9C8] bg-[#F7F9F2] p-5 text-left transition hover:bg-[#EFF5EA] sm:p-6"
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D8EADD] text-[#287969]">
-              <MdMailOutline size={25} />
-            </span>
-
-            <span className="min-w-0 flex-1">
-              <span className="block font-bold text-[#19483D]">
-                Zaproś do rodziny
-              </span>
-              <span className="mt-1 block text-sm text-[#839087]">
-                Wyślij wiadomość email z zaproszeniem do rodziny.
-              </span>
-            </span>
-          </button>
-        </div>
-      </section>
+      <FamilyMembersSection
+        members={members}
+        filteredMembers={filteredMembers}
+        adults={adults}
+        childrenF={childrenF}
+        filter={filter}
+        search={search}
+        invitations={invitations}
+        invitationError={invitationError}
+        isPending={isPending}
+        isFamilyAdmin={isFamilyAdmin}
+        onFilterChange={setFilter}
+        onSearchChange={setSearch}
+        onDelete={setMemberToDelete}
+        onEdit={openEditModal}
+        onTransfer={setMemberToTransfer}
+        canEditMember={canEditMember}
+        onRevokeInvitation={handleRevokeInvitation}
+        onAddChild={openModal}
+        onInvite={openInviteModal}
+      />
 
       {/* Modal dodawania */}
       {isModalOpen && (
