@@ -17,14 +17,28 @@ import {
 } from "react-icons/md";
 
 import type { Task } from "@/lib/tasks/types";
-import { mockTasks } from "@/lib/tasks/mock-data";
 import type { FamilyMember } from "@/lib/family/types";
-import { mockFamilyMembers } from "@/lib/family/mock-data";
 import Image from "next/image";
 
-type TaskFilter = "ALL" | "MINE" | "FAMILY" | "COMPLETED";
+import toast from "react-hot-toast";
 
-const CURRENT_MEMBER_ID = "member-1";
+import {
+  createTask as createTaskAction,
+  getTasks as getTasksAction,
+  toggleTask as toggleTaskAction,
+  deleteTask as deleteTaskAction,
+} from "@/app/(app)/zadania/actions";
+
+type TaskFilter = "ALL" | "MINE" | "FAMILY" | "COMPLETED";
+type TaskMember = FamilyMember;
+type InitialTask = Task;
+
+type TasksPageContentProps = {
+  initialTasks: InitialTask[];
+  initialMembers: TaskMember[];
+  currentMemberId: string;
+  canManageTasks: boolean;
+};
 
 function localDateString(date: Date = new Date()) {
   const year = date.getFullYear();
@@ -153,11 +167,17 @@ function TaskRow({
   member,
   onToggle,
   onDelete,
+  canDelete,
+  canToggle,
+  isPending,
 }: {
   task: Task;
   member: FamilyMember | undefined;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  canDelete: boolean;
+  canToggle: boolean;
+  isPending: boolean;
 }) {
   const overdue = isOverdue(task);
 
@@ -169,23 +189,26 @@ function TaskRow({
           : "border-[#E1E7DE] bg-[#FEFEFA] hover:border-[#BFD5C5]"
       }`}
     >
-      <button
-        type="button"
-        onClick={() => onToggle(task.id)}
-        aria-label={
-          task.completed
-            ? `Przywróć zadanie: ${task.title}`
-            : `Oznacz jako ukończone: ${task.title}`
-        }
-        title={task.completed ? "Przywróć zadanie" : "Ukończ zadanie"}
-        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ${
-          task.completed
-            ? "border-[#287969] bg-[#287969] text-white"
-            : "border-[#B7C7BA] text-transparent hover:border-[#287969]"
-        }`}
-      >
-        {task.completed && <MdCheck size={16} />}
-      </button>
+      {canToggle && (
+        <button
+          type="button"
+          onClick={() => onToggle(task.id)}
+          disabled={isPending}
+          aria-label={
+            task.completed
+              ? `Przywróć zadanie: ${task.title}`
+              : `Oznacz jako ukończone: ${task.title}`
+          }
+          title={task.completed ? "Przywróć zadanie" : "Ukończ zadanie"}
+          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ${
+            task.completed
+              ? "border-[#287969] bg-[#287969] text-white"
+              : "border-[#B7C7BA] text-transparent hover:border-[#287969]"
+          }`}
+        >
+          {task.completed && <MdCheck size={16} />}
+        </button>
+      )}
 
       <div className="min-w-0 flex-1">
         <h3
@@ -222,32 +245,42 @@ function TaskRow({
           </span>
         </div>
       </div>
-
-      <button
-        type="button"
-        onClick={() => onDelete(task.id)}
-        aria-label={`Usuń zadanie: ${task.title}`}
-        title="Usuń zadanie"
-        className="shrink-0 rounded-lg p-2 text-[#9AA49C] transition hover:bg-red-50 hover:text-red-600"
-      >
-        <MdDeleteOutline size={20} />
-      </button>
+      {canDelete && (
+        <button
+          type="button"
+          onClick={() => onDelete(task.id)}
+          aria-label={`Usuń zadanie: ${task.title}`}
+          title="Usuń zadanie"
+          className="shrink-0 rounded-lg p-2 text-[#9AA49C] transition hover:bg-red-50 hover:text-red-600"
+        >
+          <MdDeleteOutline size={20} />
+        </button>
+      )}
     </article>
   );
 }
 
-export default function TasksPageContent() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+export default function TasksPageContent({
+  initialTasks,
+  initialMembers,
+  currentMemberId,
+  canManageTasks,
+}: TasksPageContentProps) {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [filter, setFilter] = useState<TaskFilter>("ALL");
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set());
 
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
     dueDate: "",
-    assigneeId: CURRENT_MEMBER_ID,
+    assigneeId: currentMemberId,
   });
 
   const today = localDateString();
@@ -265,12 +298,12 @@ export default function TasksPageContent() {
     return tasks
       .filter((task) => {
         if (filter === "COMPLETED" && !task.completed) return false;
-        if (filter === "MINE" && task.assigneeId !== CURRENT_MEMBER_ID) {
+        if (filter === "MINE" && task.assigneeId !== currentMemberId) {
           return false;
         }
         if (
           filter === "FAMILY" &&
-          (!task.assigneeId || task.assigneeId === CURRENT_MEMBER_ID)
+          (!task.assigneeId || task.assigneeId === currentMemberId)
         ) {
           return false;
         }
@@ -285,14 +318,14 @@ export default function TasksPageContent() {
 
         return a.dueDate.localeCompare(b.dueDate);
       });
-  }, [tasks, filter, search]);
+  }, [tasks, filter, search, currentMemberId]);
 
   function openModal() {
     setForm({
       title: "",
       description: "",
       dueDate: "",
-      assigneeId: CURRENT_MEMBER_ID,
+      assigneeId: currentMemberId,
     });
     setError("");
     setIsModalOpen(true);
@@ -303,8 +336,10 @@ export default function TasksPageContent() {
     setError("");
   }
 
-  function handleAddTask(event: FormEvent<HTMLFormElement>) {
+  async function handleAddTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) return;
 
     const title = form.title.trim();
 
@@ -313,41 +348,108 @@ export default function TasksPageContent() {
       return;
     }
 
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      title,
-      description: form.description.trim(),
-      dueDate: form.dueDate || null,
-      assigneeId: form.assigneeId || null,
-      completed: false,
-      createdAt: localDateString(),
-    };
+    setIsSubmitting(true);
 
-    setTasks((current) => [newTask, ...current]);
-    setFilter("ALL");
-    setSearch("");
-    closeModal();
+    try {
+      const result = await createTaskAction({
+        title,
+        description: form.description.trim(),
+        dueDate: form.dueDate || null,
+        assigneeId: form.assigneeId || null,
+      });
+
+      if (!result.success) {
+        setError(result.message);
+        toast.error(result.message);
+        return;
+      }
+
+      const updatedTasks = await getTasksAction();
+
+      setTasks(updatedTasks);
+      setFilter("ALL");
+      setSearch("");
+      closeModal();
+
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Błąd dodawania zadania:", error);
+      toast.error("Nie udało się dodać zadania.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function toggleTask(id: string) {
-    setTasks((current) =>
-      current.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
-      ),
-    );
+  async function toggleTask(id: string) {
+    const task = tasks.find((item) => item.id === id);
+
+    if (!task) return;
+
+    if (pendingTaskIds.has(id)) return;
+
+    setPendingTaskIds((current) => new Set(current).add(id));
+
+    try {
+      const result = await toggleTaskAction(id, !task.completed);
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      setTasks((current) =>
+        current.map((item) =>
+          item.id === id ? { ...item, completed: !task.completed } : item,
+        ),
+      );
+
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Błąd podczas zmiany statusu zadania:", error);
+      toast.error("Nie udało się zmienić statusu zadania. Spróbuj ponownie.");
+    } finally {
+      setPendingTaskIds((current) => {
+        const updated = new Set(current);
+        updated.delete(id);
+        return updated;
+      });
+    }
   }
 
   function deleteTask(id: string) {
     const task = tasks.find((item) => item.id === id);
+
     if (!task) return;
 
-    const confirmed = window.confirm(
-      `Czy na pewno chcesz usunąć zadanie „${task.title}”?`,
-    );
+    setTaskToDelete(task);
+  }
 
-    if (!confirmed) return;
+  async function confirmDeleteTask() {
+    if (!taskToDelete || isDeleting) return;
 
-    setTasks((current) => current.filter((item) => item.id !== id));
+    const id = taskToDelete.id;
+
+    setIsDeleting(true);
+
+    try {
+      const result = await deleteTaskAction(id);
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      setTasks((current) => current.filter((item) => item.id !== id));
+
+      setTaskToDelete(null);
+
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Błąd podczas usuwania zadania:", error);
+      toast.error("Nie udało się usunąć zadania. Spróbuj ponownie.");
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   const filterOptions: { value: TaskFilter; label: string }[] = [
@@ -380,15 +482,16 @@ export default function TasksPageContent() {
               obowiązki i realizujcie je razem.
             </p>
           </div>
-
-          <button
-            type="button"
-            onClick={openModal}
-            className="absolute top-1/2 left-1/2 -translate-1/2 cursor-pointer inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-[#287969] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#19483D] lg:self-center"
-          >
-            <MdAdd size={22} />
-            Dodaj zadanie
-          </button>
+          {canManageTasks && (
+            <button
+              type="button"
+              onClick={openModal}
+              className="absolute top-1/2 left-1/2 -translate-1/2 cursor-pointer inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-[#287969] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#19483D] lg:self-center"
+            >
+              <MdAdd size={22} />
+              Dodaj zadanie
+            </button>
+          )}
           <Image
             src="/images/tasksHeader.svg"
             alt="tasks"
@@ -446,17 +549,28 @@ export default function TasksPageContent() {
               </button>
             ))}
           </div>
-
-          <label className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E0E6DE] bg-[#F8F9F4] px-4 xl:w-80">
-            <MdSearch className="shrink-0 text-[#718078]" size={21} />
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Szukaj zadania..."
-              aria-label="Szukaj zadania"
-              className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[#263C35] outline-none placeholder:text-[#98A29B]"
-            />
-          </label>
+          <div className="flex gap-2 items-center">
+            {canManageTasks && (
+              <button
+                type="button"
+                onClick={openModal}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#E2F0EB] px-4 py-3 text-sm font-bold text-[#287969] hover:bg-[#D4E8DE]"
+              >
+                <MdAdd size={19} />
+                Dodaj zadanie
+              </button>
+            )}
+            <label className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E0E6DE] bg-[#F8F9F4] px-4 xl:w-80">
+              <MdSearch className="shrink-0 text-[#718078]" size={21} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Szukaj zadania..."
+                aria-label="Szukaj zadania"
+                className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[#263C35] outline-none placeholder:text-[#98A29B]"
+              />
+            </label>
+          </div>
         </div>
 
         <div className="mt-6 flex items-center justify-between gap-3">
@@ -486,11 +600,16 @@ export default function TasksPageContent() {
               <TaskRow
                 key={task.id}
                 task={task}
-                member={mockFamilyMembers.find(
+                member={initialMembers.find(
                   (person) => person.id === task.assigneeId,
                 )}
                 onToggle={toggleTask}
                 onDelete={deleteTask}
+                canDelete={canManageTasks}
+                canToggle={
+                  canManageTasks || task.assigneeId === currentMemberId
+                }
+                isPending={pendingTaskIds.has(task.id)}
               />
             ))}
           </div>
@@ -503,14 +622,16 @@ export default function TasksPageContent() {
             <p className="mt-1 text-sm text-[#839087]">
               Zmień filtr lub wyszukiwanie albo dodaj nowe zadanie.
             </p>
-            <button
-              type="button"
-              onClick={openModal}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#E2F0EB] px-4 py-2.5 text-sm font-bold text-[#287969] hover:bg-[#D4E8DE]"
-            >
-              <MdAdd size={19} />
-              Dodaj zadanie
-            </button>
+            {canManageTasks && (
+              <button
+                type="button"
+                onClick={openModal}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#E2F0EB] px-4 py-2.5 text-sm font-bold text-[#287969] hover:bg-[#D4E8DE]"
+              >
+                <MdAdd size={19} />
+                Dodaj zadanie
+              </button>
+            )}
           </div>
         )}
 
@@ -524,8 +645,7 @@ export default function TasksPageContent() {
               Wspólna organizacja
             </p>
             <p className="mt-1 text-sm leading-5 text-[#839087]">
-              Przypisuj zadania domownikom i oznaczaj je jako ukończone. Zmiany
-              są obecnie przechowywane tylko w pamięci strony.
+              Przypisuj zadania domownikom i oznaczaj je jako ukończone.
             </p>
           </div>
         </div>
@@ -580,7 +700,7 @@ export default function TasksPageContent() {
                   id="task-title"
                   autoFocus
                   required
-                  maxLength={150}
+                  maxLength={120}
                   value={form.title}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -663,10 +783,10 @@ export default function TasksPageContent() {
                   className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
                 >
                   <option value="">Bez przypisania</option>
-                  {mockFamilyMembers.map((member) => (
+                  {initialMembers.map((member) => (
                     <option key={member.id} value={member.id}>
                       {member.name}
-                      {member.id === CURRENT_MEMBER_ID ? " (Ty)" : ""}
+                      {member.id === currentMemberId ? " (Ty)" : ""}
                     </option>
                   ))}
                 </select>
@@ -686,15 +806,80 @@ export default function TasksPageContent() {
                 >
                   Anuluj
                 </button>
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
-                >
-                  <MdAdd size={20} />
-                  Dodaj zadanie
-                </button>
+                {canManageTasks && (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
+                  >
+                    <MdAdd size={20} />
+                    {isSubmitting ? "Zapisywanie..." : "Dodaj zadanie"}
+                  </button>
+                )}
               </div>
             </form>
+          </section>
+        </div>
+      )}
+      {/* Modal potwierdzenia usunięcia zadania */}
+      {taskToDelete && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-[#193C32]/40 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !isDeleting) {
+              setTaskToDelete(null);
+            }
+          }}
+        >
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-task-title"
+            aria-describedby="delete-task-description"
+            className="w-full max-w-md rounded-3xl border border-[#DCE4D9] bg-[#FEFEFA] p-6 shadow-xl sm:p-7"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F8E6E2] text-[#BD6557]">
+              <MdDeleteOutline size={25} />
+            </div>
+
+            <h2
+              id="delete-task-title"
+              className="mt-5 text-xl font-extrabold text-[#19483D]"
+            >
+              Usunąć zadanie?
+            </h2>
+
+            <p
+              id="delete-task-description"
+              className="mt-2 text-sm leading-6 text-[#718078]"
+            >
+              Czy na pewno chcesz usunąć zadanie{" "}
+              <span className="font-bold text-[#38544A]">
+                „{taskToDelete.title}”
+              </span>
+              ? Tej operacji nie można cofnąć.
+            </p>
+
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setTaskToDelete(null)}
+                className="cursor-pointer rounded-xl border border-[#DCE4D9] px-5 py-3 text-sm font-semibold text-[#38544A] transition hover:bg-[#F5F6EE] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Anuluj
+              </button>
+
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDeleteTask}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#BD6557] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#A94F43] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <MdDeleteOutline size={19} />
+                {isDeleting ? "Usuwanie..." : "Usuń zadanie"}
+              </button>
+            </div>
           </section>
         </div>
       )}
