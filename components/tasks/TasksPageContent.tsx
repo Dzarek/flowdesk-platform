@@ -726,7 +726,7 @@ export default function TasksPageContent({
                 <textarea
                   id="task-description"
                   rows={3}
-                  maxLength={1000}
+                  maxLength={2000}
                   value={form.description}
                   onChange={(event) =>
                     setForm((current) => ({

@@ -105,10 +105,10 @@ export async function createTask(input: TaskInput): Promise<ActionResult> {
       message: "Nazwa zadania może mieć maksymalnie 120 znaków.",
     };
   }
-  if (description && description.length > 1000) {
+  if (description && description.length > 2000) {
     return {
       success: false,
-      message: "Opis zadania może mieć maksymalnie 1000 znaków.",
+      message: "Opis zadania może mieć maksymalnie 2000 znaków.",
     };
   }
 

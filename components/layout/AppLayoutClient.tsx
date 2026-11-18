@@ -61,12 +61,7 @@ export default function AppLayoutClient({
           onMobileMenuOpen={() => setIsMobileSidebarOpen(true)}
         />
 
-        <main className="relative min-h-screen xl:py-14 lg:pt-10 w-full xl:px-10 xl:pb-8 rounded-2xl overflow-hidden bg-[#F5F0E7]">
-          {/* <div className="absolute inset-0 bg-gradient-to-br from-[#E8E2D5]/90 via-[#E8E2D5]/10 to-[#D9C6A6]/90 " />
-
-          <div className="absolute  h-[500px] w-[500px] rounded-full bg-[#78917A]/20 blur-[120px]" />
-
-          <div className="absolute  h-[500px] w-[500px] rounded-full bg-[#C47B5A]/15 blur-[120px]" /> */}
+        <main className="relative min-h-screen xl:py-10 lg:pt-10 w-full xl:px-10 xl:pb-8 rounded-2xl overflow-hidden bg-[#F5F0E7]">
           <video
             autoPlay
             muted
@@ -76,7 +71,6 @@ export default function AppLayoutClient({
           >
             <source src="/videos/videoBg4.webm" type="video/webm" />
           </video>
-          {/* <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#b8c3b8]/30 via-[#e2d6b8]/40 to-[#b8c3b8]/60 " /> */}
 
           <div className="relative ">{children}</div>
         </main>

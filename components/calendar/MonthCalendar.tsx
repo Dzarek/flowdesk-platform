@@ -96,16 +96,29 @@ export default function MonthCalendar({
                 {day}
               </span>
               <div className="mt-1.5 space-y-1 overflow-hidden">
-                {dayEntries.slice(0, 2).map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="truncate rounded-md bg-[#DDECE0] px-1 py-1 text-[9px] font-semibold leading-tight text-[#285D49] sm:text-[11px]"
-                    title={entry.title}
-                  >
-                    {entry.time && <span className="hidden sm:inline">{entry.time} </span>}
-                    {entry.title}
-                  </div>
-                ))}
+                {dayEntries.slice(0, 2).map((entry) => {
+                  const isTask = entry.type === "TASK";
+                  const isCompleted = isTask && entry.completed;
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className={`truncate rounded-md px-1 py-1 text-[9px] font-semibold leading-tight sm:text-[11px] ${
+                        isCompleted
+                          ? "bg-[#EEF0EA] text-[#929B91] line-through"
+                          : isTask
+                            ? "bg-[#F8EBD8] text-[#A87532]"
+                            : "bg-[#DDECE0] text-[#285D49]"
+                      }`}
+                      title={`${isTask ? "Zadanie" : "Wydarzenie"}: ${entry.title}`}
+                    >
+                      {entry.time && (
+                        <span className="hidden sm:inline">{entry.time} </span>
+                      )}
+                      {entry.title}
+                    </div>
+                  );
+                })}
                 {dayEntries.length > 2 && (
                   <p className="truncate px-1 text-[9px] font-semibold text-[#718078] sm:text-[11px]">
                     +{dayEntries.length - 2} więcej
@@ -128,10 +141,17 @@ export default function MonthCalendar({
           <span className="h-3 w-3 rounded-full bg-[#287969]" /> Dzisiaj
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded border border-[#287969] bg-[#EAF3E9]" /> Wybrany dzień
+          <span className="h-3 w-3 rounded border border-[#287969] bg-[#EAF3E9]" />{" "}
+          Wybrany dzień
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-[#DDECE0]" /> Dzień z wpisami
+          <span className="h-3 w-3 rounded bg-[#DDECE0]" />
+          Wydarzenie
+        </span>
+
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-[#F8EBD8]" />
+          Zadanie
         </span>
       </div>
     </div>

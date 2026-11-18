@@ -29,10 +29,12 @@ export type SelectedDayPanelProps = {
   selectedDate: string;
   selectedEntries: CalendarEntry[];
   upcomingEntries: CalendarEntry[];
+  canManageEntries: boolean;
   onAdd: () => void;
   onEdit: (entry: CalendarEntry) => void;
   onDelete: (id: string) => void;
   onSelectUpcoming: (date: string) => void;
+  onClose: () => void;
 };
 
 export type CalendarEntryModalProps = {
@@ -41,6 +43,7 @@ export type CalendarEntryModalProps = {
   selectedDate: string;
   form: CalendarFormValues;
   error: string;
+  isSaving: boolean;
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onFormChange: (field: keyof CalendarFormValues, value: string) => void;
