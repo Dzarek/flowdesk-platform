@@ -1,10 +1,13 @@
 import type { FormEvent } from "react";
 import type { CalendarEntry } from "@/lib/calendar/types";
 
+import type { RecurrenceFrequency } from "@/lib/calendar/types";
+
 export type CalendarFormValues = {
   title: string;
   description: string;
   time: string;
+  recurrenceFrequency: RecurrenceFrequency | "";
 };
 
 export type CalendarStatsProps = {

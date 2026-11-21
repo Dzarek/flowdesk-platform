@@ -54,7 +54,7 @@ export default function FamilyStats({
           value={total}
           label="Osoby"
           iconBg="bg-[#E4EEDC]"
-          iconColor="text-[#287969]"
+          iconColor="text-[var(--greenText)]"
         />
       </div>
       <StatCard

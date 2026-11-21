@@ -26,6 +26,13 @@ enum FamilyInvitationStatus {
   EXPIRED
 }
 
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
 model User {
   id       String   @id @default(cuid())
   email    String   @unique
@@ -173,6 +180,7 @@ model CalendarEntry {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  recurrenceFrequency RecurrenceFrequency?
 
   @@index([familyId, date])
   @@index([createdByUserId])

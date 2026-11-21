@@ -21,6 +21,7 @@ import CalendarEntryModal from "./CalendarEntryModal";
 
 import type { CalendarFormValues } from "./types";
 import { getMonthDays, parseDateKey, toDateKey } from "./utils";
+import { expandCalendarEntries } from "@/lib/calendar/recurrence";
 
 type CalendarPageContentProps = {
   initialEntries: CalendarEntry[];
@@ -31,6 +32,7 @@ const EMPTY_FORM: CalendarFormValues = {
   title: "",
   description: "",
   time: "",
+  recurrenceFrequency: "",
 };
 
 export default function CalendarPageContent({
@@ -65,6 +67,22 @@ export default function CalendarPageContent({
 
   const todayKey = toDateKey(new Date());
 
+  const monthStart = toDateKey(new Date(year, month, 1));
+  const monthEnd = toDateKey(new Date(year, month + 1, 0));
+
+  const upcomingEnd = new Date();
+  upcomingEnd.setDate(upcomingEnd.getDate() + 366);
+
+  const rangeStart = monthStart < todayKey ? monthStart : todayKey;
+
+  const rangeEnd =
+    monthEnd > toDateKey(upcomingEnd) ? monthEnd : toDateKey(upcomingEnd);
+
+  const calendarEntries = useMemo(
+    () => expandCalendarEntries(entries, rangeStart, rangeEnd),
+    [entries, rangeStart, rangeEnd],
+  );
+
   function handleSelectDate(date: string) {
     setSelectedDate(date);
     setIsDayPanelOpen(true);
@@ -73,7 +91,7 @@ export default function CalendarPageContent({
   const entriesByDate = useMemo(() => {
     const grouped = new Map<string, CalendarEntry[]>();
 
-    for (const entry of entries) {
+    for (const entry of calendarEntries) {
       const current = grouped.get(entry.date) ?? [];
       current.push(entry);
       grouped.set(entry.date, current);
@@ -88,16 +106,16 @@ export default function CalendarPageContent({
     }
 
     return grouped;
-  }, [entries]);
+  }, [calendarEntries]);
 
   const selectedEntries = entriesByDate.get(selectedDate) ?? [];
 
-  const monthEntries = entries.filter((entry) => {
+  const monthEntries = calendarEntries.filter((entry) => {
     const date = parseDateKey(entry.date);
     return date.getFullYear() === year && date.getMonth() === month;
   });
 
-  const upcomingEntries = entries
+  const upcomingEntries = calendarEntries
     .filter((entry) => entry.date >= todayKey)
     .sort((a, b) => {
       const dateComparison = a.date.localeCompare(b.date);
@@ -108,7 +126,7 @@ export default function CalendarPageContent({
 
       return a.time.localeCompare(b.time);
     })
-    .slice(0, 4);
+    .slice(0, 1);
 
   function changeMonth(amount: number) {
     setVisibleMonth(
@@ -138,9 +156,12 @@ export default function CalendarPageContent({
     if (!canManageEntries) return;
 
     setEditingEntry(entry);
-    setSelectedDate(entry.date);
 
-    const date = parseDateKey(entry.date);
+    const originalDate = entry.recurrenceStartDate ?? entry.date;
+
+    setSelectedDate(originalDate);
+
+    const date = parseDateKey(originalDate);
 
     setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
 
@@ -148,6 +169,7 @@ export default function CalendarPageContent({
       title: entry.title,
       description: entry.description,
       time: entry.time ?? "",
+      recurrenceFrequency: entry.recurrenceFrequency ?? "",
     });
 
     setError("");
@@ -190,6 +212,7 @@ export default function CalendarPageContent({
         description: form.description.trim(),
         date: selectedDate,
         time: form.time || null,
+        recurrenceFrequency: form.recurrenceFrequency || null,
       };
 
       const result = editingEntry

@@ -13,6 +13,7 @@ import {
   formatTime,
   parseDateKey,
 } from "./utils";
+import { getCalendarDayInfo } from "./data/calendarData";
 
 export default function SelectedDayPanel({
   selectedDate,
@@ -25,14 +26,42 @@ export default function SelectedDayPanel({
   onSelectUpcoming,
   onClose,
 }: SelectedDayPanelProps) {
+  const dayInfo = getCalendarDayInfo(selectedDate);
   return (
     <aside className="flex h-screen w-full min-h-0 flex-col overflow-hidden rounded-l-[50px]  border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-2xl sm:p-6">
       <div className="flex flex-col-reverse items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="w-full">
           <p className="text-sm font-semibold text-[#287969]">Wybrany dzień</p>
           <h2 className="mt-1 text-lg font-extrabold capitalize leading-6 text-[#19483D]">
             {formatFullDate(selectedDate)}
           </h2>
+          <div className="flex items-center justify-end mt-2 w-full gap-2 mb-4">
+            {dayInfo.holidayName && (
+              <span
+                className="truncate py-2 px-2 text-xs bg-amber-400/20 rounded-lg font-semibold leading-tight text-[#A87568]"
+                title={dayInfo.holidayName}
+              >
+                {dayInfo.holidayName}
+              </span>
+            )}
+
+            {dayInfo.specialDayName && !dayInfo.holidayName && (
+              <span
+                className="truncate px-0.5 text-xs font-medium leading-tight text-[#A87568]"
+                title={dayInfo.specialDayName}
+              >
+                {dayInfo.specialDayName}
+              </span>
+            )}
+            {dayInfo.nameDays && (
+              <span
+                className="truncate ml-auto text-right px-0.5 text-sm leading-tight text-[#636c66] "
+                title={`Imieniny: ${dayInfo.nameDays}`}
+              >
+                {dayInfo.nameDays}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex w-full shrink-0 items-center justify-end gap-2">
@@ -42,7 +71,7 @@ export default function SelectedDayPanel({
               onClick={onAdd}
               aria-label="Dodaj wpis w wybranym dniu"
               title="Dodaj wpis"
-              className="cursor-pointer rounded-xl bg-[#287969] p-2.5 text-white transition hover:bg-[#19483D] font-semibold uppercase flex items-center justify-center gap-1 text-xs"
+              className="cursor-pointer rounded-xl bg-[#287969] py-2.5 px-5 text-white transition hover:bg-[#19483D] font-semibold uppercase flex items-center justify-center gap-1 text-xs"
             >
               <MdAdd size={22} />
               Dodaj wpis
@@ -159,48 +188,46 @@ export default function SelectedDayPanel({
           )}
         </div>
       )}
-
-      {/* <div className="mt-7 border-t border-[#E8ECE5] pt-5">
-        <h3 className="font-extrabold text-[#263C35]">Najbliższe wydarzenia</h3>
-        {upcomingEntries.length > 0 ? (
-          <div className="mt-3 space-y-3">
-            {upcomingEntries.map((entry) => {
-              const date = parseDateKey(entry.date);
-              return (
-                <button
-                  key={entry.id}
-                  type="button"
-                  onClick={() => onSelectUpcoming(entry.date)}
-                  className="flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-xl p-2 text-left transition hover:bg-[#F5F6EE]"
-                >
-                  <span className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-[#E2F0EB] text-[#287969]">
-                    <span className="text-sm font-extrabold leading-4">
-                      {date.getDate()}
-                    </span>
-                    <span className="text-[9px] font-semibold uppercase">
-                      {new Intl.DateTimeFormat("pl-PL", {
-                        month: "short",
-                      }).format(date)}
-                    </span>
+      {selectedEntries.length === 0 && (
+        <div className="mt-7 border-t border-[#E8ECE5] pt-5">
+          <h3 className="font-extrabold text-[#263C35]">
+            Najbliższe wydarzenie
+          </h3>
+          {upcomingEntries.length > 0 ? (
+            <div className="mt-3 space-y-3">
+              <button
+                key={upcomingEntries[0].id}
+                type="button"
+                onClick={() => onSelectUpcoming(upcomingEntries[0].date)}
+                className="flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-xl p-2 text-left transition hover:bg-[#F5F6EE]"
+              >
+                <span className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-[#E2F0EB] text-[#287969]">
+                  <span className="text-sm font-extrabold leading-4">
+                    {parseDateKey(upcomingEntries[0].date).getDate()}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-[#38544A]">
-                      {entry.title}
-                    </span>
-                    <span className="mt-1 block text-xs text-[#839087]">
-                      {entry.time ?? "Cały dzień"}
-                    </span>
+                  <span className="text-[9px] font-semibold uppercase">
+                    {new Intl.DateTimeFormat("pl-PL", {
+                      month: "short",
+                    }).format(parseDateKey(upcomingEntries[0].date))}
                   </span>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="mt-3 text-sm text-[#839087]">
-            Brak nadchodzących wydarzeń.
-          </p>
-        )}
-      </div> */}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-[#38544A]">
+                    {upcomingEntries[0].title}
+                  </span>
+                  <span className="mt-1 block text-xs text-[#839087]">
+                    {upcomingEntries[0].time ?? "Cały dzień"}
+                  </span>
+                </span>
+              </button>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-[#839087]">
+              Brak nadchodzących wydarzeń.
+            </p>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

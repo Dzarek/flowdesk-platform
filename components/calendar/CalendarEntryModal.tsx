@@ -110,7 +110,34 @@ export default function CalendarEntryModal({
               className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
             />
           </div>
+          <div>
+            <label
+              htmlFor="calendar-recurrence"
+              className="mb-2 block text-sm font-semibold text-[#38544A]"
+            >
+              Powtarzanie wydarzenia
+            </label>
 
+            <select
+              id="calendar-recurrence"
+              value={form.recurrenceFrequency}
+              onChange={(event) =>
+                onFormChange("recurrenceFrequency", event.target.value)
+              }
+              className="w-full cursor-pointer rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
+            >
+              <option value="">Nigdy</option>
+              <option value="DAILY">Codziennie</option>
+              <option value="WEEKLY">Co tydzień</option>
+              <option value="MONTHLY">Co miesiąc</option>
+              <option value="YEARLY">Co rok</option>
+            </select>
+
+            <p className="mt-2 text-xs text-[#839087]">
+              Wydarzenie będzie automatycznie pojawiać się w kolejnych
+              terminach.
+            </p>
+          </div>
           {error && (
             <p role="alert" className="text-sm font-medium text-red-600">
               {error}

@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 import { getFamilyContext } from "@/lib/auth/get-family-context";
+import { RecurrenceFrequency } from "@prisma/client";
 
 type CalendarEntryInput = {
   title: string;
   description?: string;
   date: string;
   time?: string | null;
+  recurrenceFrequency?: RecurrenceFrequency | null;
 };
 
 type ActionResult = {
@@ -117,6 +119,21 @@ function validateInput(input: unknown) {
       message: "Podaj prawidłową godzinę w formacie HH:mm.",
     };
   }
+  const allowedFrequencies = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"] as const;
+
+  const recurrenceFrequency = data.recurrenceFrequency ?? null;
+
+  if (
+    recurrenceFrequency !== null &&
+    !allowedFrequencies.includes(
+      recurrenceFrequency as (typeof allowedFrequencies)[number],
+    )
+  ) {
+    return {
+      success: false as const,
+      message: "Nieprawidłowa częstotliwość wydarzenia.",
+    };
+  }
 
   return {
     success: true as const,
@@ -125,6 +142,7 @@ function validateInput(input: unknown) {
       description,
       date,
       time,
+      recurrenceFrequency,
     },
   };
 }
@@ -172,6 +190,7 @@ export async function getCalendarEntries() {
       time: entry.time,
       createdAt: entry.createdAt.toISOString(),
       type: "EVENT" as const,
+      recurrenceFrequency: entry.recurrenceFrequency,
     }));
 
     const calendarTasks = tasks.map((task) => ({

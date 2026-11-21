@@ -1,3 +1,5 @@
+export type RecurrenceFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+
 export type CalendarEntry = {
   id: string;
   date: string;
@@ -6,10 +8,11 @@ export type CalendarEntry = {
   time: string | null;
   createdAt: string;
 
-  // Rozróżnienie wydarzeń i zadań
   type: "EVENT" | "TASK";
 
-  // Dodatkowe dane dla zadań
+  recurrenceFrequency?: RecurrenceFrequency | null;
+  recurrenceStartDate?: string;
+
   completed?: boolean;
   assigneeName?: string | null;
 };
