@@ -26,7 +26,7 @@ export default function SelectedDayPanel({
   onClose,
 }: SelectedDayPanelProps) {
   return (
-    <aside className="flex h-screen w-full min-h-0 flex-col overflow-hidden rounded-3xl xl:rounded-r-none border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-2xl sm:p-6">
+    <aside className="flex h-screen w-full min-h-0 flex-col overflow-hidden rounded-l-[50px]  border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-2xl sm:p-6">
       <div className="flex flex-col-reverse items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[#287969]">Wybrany dzień</p>

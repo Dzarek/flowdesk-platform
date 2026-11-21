@@ -1,6 +1,7 @@
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import type { MonthCalendarProps } from "./types";
 import { MONTHS, WEEKDAYS, toDateKey } from "./utils";
+import { getCalendarDayInfo } from "./data/calendarData";
 
 export default function MonthCalendar({
   year,
@@ -68,7 +69,7 @@ export default function MonthCalendar({
           const dayEntries = entriesByDate.get(date) ?? [];
           const isSelected = date === selectedDate;
           const isToday = date === todayKey;
-
+          const dayInfo = getCalendarDayInfo(date);
           return (
             <button
               key={date}
@@ -76,25 +77,55 @@ export default function MonthCalendar({
               onClick={() => onSelectDate(date)}
               aria-label={`${day} ${MONTHS[month]}, ${dayEntries.length} wpisów`}
               aria-pressed={isSelected}
-              className={`group flex min-h-[92px] min-w-0 cursor-pointer flex-col items-stretch overflow-hidden rounded-xl border p-1.5 text-left transition sm:min-h-[118px] sm:p-2 ${
+              className={`group relative flex min-h-[92px] min-w-0 cursor-pointer flex-col items-stretch overflow-hidden rounded-xl border-[1.5px] p-1.5 text-left transition sm:min-h-[118px] sm:p-2 ${
                 isSelected
                   ? "border-[#287969] bg-[#EAF3E9] ring-1 ring-[#287969]"
                   : isToday
-                    ? "border-[#A6CBB5] bg-[#F5F8F0] hover:border-[#287969]"
-                    : "border-[#E8ECE5] bg-white hover:border-[#BFD5C5] hover:bg-[#F8FAF5]"
+                    ? "border-[#9dbdaa] bg-[#F5F8F0] hover:border-[#287969]"
+                    : dayInfo.isHoliday
+                      ? "border-[#bbaba4] bg-[#f7cead]/20 hover:border-[#D9B8A9]"
+                      : dayInfo.isWeekend
+                        ? "border-[#b7bab1] bg-[#c2c5c226] hover:border-[#BFCBB8]"
+                        : "border-[#837f7f] bg-white hover:border-[#b1d4ba] hover:bg-[#F8FAF5]"
               }`}
             >
               <span
-                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold sm:h-7 sm:w-7 sm:text-sm ${
+                className={`flex absolute top-0 left-0 h-6 w-6 p-1 items-center justify-center rounded-br-md text-[11px] font-bold sm:h-7 sm:w-7 sm:text-sm  text-white ${
                   isToday
                     ? "bg-[#287969] text-white"
                     : isSelected
                       ? "text-[#19483D]"
-                      : "text-[#52665C]"
+                      : " bg-[#646b69]"
                 }`}
               >
                 {day}
               </span>
+              {dayInfo.nameDays && (
+                <span
+                  className="ml-auto mb-2 truncate h-6 sm:h-5 w-full text-right border-b px-0.5 text-[9px] leading-tight text-[#636c66] sm:text-[10px]"
+                  title={`Imieniny: ${dayInfo.nameDays}`}
+                >
+                  {dayInfo.nameDays}
+                </span>
+              )}
+
+              {dayInfo.holidayName && (
+                <span
+                  className="ml-auto truncate px-0.5 text-[9px] font-semibold leading-tight text-[#A87568]"
+                  title={dayInfo.holidayName}
+                >
+                  {dayInfo.holidayName}
+                </span>
+              )}
+
+              {dayInfo.specialDayName && !dayInfo.holidayName && (
+                <span
+                  className="mt-0.5 truncate px-0.5 text-[9px] font-medium leading-tight text-[#A87568]"
+                  title={dayInfo.specialDayName}
+                >
+                  {dayInfo.specialDayName}
+                </span>
+              )}
               <div className="mt-1.5 space-y-1 overflow-hidden">
                 {dayEntries.slice(0, 2).map((entry) => {
                   const isTask = entry.type === "TASK";
@@ -103,7 +134,7 @@ export default function MonthCalendar({
                   return (
                     <div
                       key={entry.id}
-                      className={`truncate rounded-md px-1 py-1 text-[9px] font-semibold leading-tight sm:text-[11px] ${
+                      className={`truncate rounded-md px-1 py-1 text-[9px] font-semibold leading-tight sm:text-[10px] ${
                         isCompleted
                           ? "bg-[#EEF0EA] text-[#929B91] line-through"
                           : isTask
@@ -143,6 +174,15 @@ export default function MonthCalendar({
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rounded border border-[#287969] bg-[#EAF3E9]" />{" "}
           Wybrany dzień
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-[#F1F3EA]" />
+          Weekend
+        </span>
+
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-[#F8EDE8]" />
+          Święto
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-[#DDECE0]" />
