@@ -329,7 +329,7 @@ export default function CalendarPageContent({
 
         {/* Panel szczegółów */}
         {isDayPanelOpen && (
-          <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50 w-[400px] max-w-[90vw] animate-in slide-in-from-right duration-300">
+          <div className="fixed top-1/2 -translate-y-1/2 right-1/2 translate-x-1/2 xl:translate-x-0 xl:right-0 z-50 w-[90vw] xl:w-[400px] max-w-[90vw] animate-in slide-in-from-right duration-300">
             <SelectedDayPanel
               selectedDate={selectedDate}
               selectedEntries={selectedEntries}

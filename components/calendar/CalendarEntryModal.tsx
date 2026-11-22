@@ -32,7 +32,7 @@ export default function CalendarEntryModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-[#287969]">
+            <p className="text-sm font-semibold text-[var(--greenTextLight)]">
               {formatFullDate(selectedDate)}
             </p>
             <h2
@@ -156,7 +156,7 @@ export default function CalendarEntryModal({
             <button
               type="submit"
               disabled={isSaving}
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#287969] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <MdCheck size={20} />
               {isSaving

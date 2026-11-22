@@ -2,6 +2,7 @@ import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import type { MonthCalendarProps } from "./types";
 import { MONTHS, WEEKDAYS, toDateKey } from "./utils";
 import { getCalendarDayInfo } from "./data/calendarData";
+import { specialDays } from "./data/specialDays";
 
 export default function MonthCalendar({
   year,
@@ -78,9 +79,9 @@ export default function MonthCalendar({
                 onClick={() => onSelectDate(date)}
                 aria-label={`${day} ${MONTHS[month]}, ${dayEntries.length} wpisów`}
                 aria-pressed={isSelected}
-                className={`group relative flex min-w-[100px] h-[92px] min-w-0 cursor-pointer flex-col items-stretch overflow-hidden rounded-xl border-2 p-1.5 text-left transition sm:h-[118px] sm:p-2 ${
+                className={`group relative flex min-w-[100px] h-[118px] xl:h-[120px] min-w-0 cursor-pointer flex-col items-stretch overflow-hidden rounded-xl border-2 p-1.5 text-left transition  sm:p-2 ${
                   isSelected
-                    ? "border-[#287969] bg-[#EAF3E9] ring-1 ring-[#287969]"
+                    ? "border-[#287969] bg-[#435b51] ring-1 ring-[#287969]"
                     : isToday
                       ? "border-[#285179]/90 bg-[#285179]/10 hover:border-[#287969]"
                       : dayInfo.isHoliday
@@ -97,7 +98,7 @@ export default function MonthCalendar({
                       : dayInfo.isHoliday
                         ? "bg-[#876d62] text-white"
                         : isSelected
-                          ? "bg-[#287969] text-white"
+                          ? "bg-[#f5fbf3] text-[#435b51]!"
                           : dayInfo.isWeekend
                             ? "bg-[var(--greenBg)]/60 text-white"
                             : " bg-[var(--greenText)] text-white"
@@ -107,7 +108,7 @@ export default function MonthCalendar({
                 </span>
                 {dayInfo.nameDays && (
                   <span
-                    className="ml-auto mb-2 truncate h-5 sm:h-5 w-full text-right border-b px-0.5 text-[9px] leading-tight text-[#636c66] sm:text-[10px]"
+                    className={`ml-auto mb-2 truncate h-[18px] sm:h-5 w-full text-right border-b px-0.5 text-[9px] leading-tight ${isSelected ? "text-white" : "text-[#636c66]"}  sm:text-[10px]`}
                     title={`Imieniny: ${dayInfo.nameDays}`}
                   >
                     {dayInfo.nameDays}
@@ -143,14 +144,14 @@ export default function MonthCalendar({
                           isCompleted
                             ? "bg-[#EEF0EA] text-[#929B91] line-through"
                             : isTask
-                              ? "bg-[#F8EBD8] text-[#A87532]"
-                              : "bg-[#d6ead5] text-[#285D49]"
+                              ? "bg-[#F8EBD8] text-[#90652b] border border-[#A87532]"
+                              : "bg-[#e6f0e5] text-[#285D49] border border-[#285D49]"
                         }`}
                         title={`${isTask ? "Zadanie" : "Wydarzenie"}: ${entry.title}`}
                       >
                         {entry.time && (
                           <span className="hidden sm:inline">
-                            {entry.time}{" "}
+                            {entry.time} |{" "}
                           </span>
                         )}
                         {entry.title}
@@ -158,47 +159,45 @@ export default function MonthCalendar({
                     );
                   })}
                   {dayEntries.length > 2 && (
-                    <p className="truncate px-1 text-[9px] font-semibold text-[#718078] sm:text-[11px]">
+                    <p
+                      className={`truncate mt-2 xl:mt-0 px-1 text-[9px] font-semibold ${isSelected ? "text-white" : "text-[#718078]"}  sm:text-[11px]`}
+                    >
                       +{dayEntries.length - 2} więcej
                     </p>
                   )}
                 </div>
-                {dayEntries.length > 0 && (
-                  <span className="mt-auto flex items-center gap-1 px-1 pt-1 text-[9px] text-[#839087] sm:hidden">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#287969]" />
-                    {dayEntries.length}
-                  </span>
-                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#E8ECE5] pt-4 text-xs text-[#839087]">
+      <div className="mt-5 flex flex-wrap items-center justify-around xl:justify-start gap-x-5 gap-y-2 border-t border-[#E8ECE5] pt-4 text-xs text-[#839087]">
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[#287969]" /> Dzisiaj
+          <span className="h-3 w-3 rounded border border-[#285179]/90 bg-[#285179]/10" />{" "}
+          Dzisiaj
         </span>
+
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded border border-[#287969] bg-[#EAF3E9]" />{" "}
+          <span className="h-3 w-3 rounded border border-[#287969] bg-[#435b51]" />{" "}
           Wybrany dzień
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-[#F1F3EA]" />
+          <span className="h-3 w-3 rounded border border-[#b7bab1] bg-[#c2c5c23b]" />
           Weekend
         </span>
 
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-[#F8EDE8]" />
+          <span className="h-3 w-3 rounded border border-[#bbaba4] bg-[#faea99]/20" />
           Święto
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-[#DDECE0]" />
+          <span className="h-3 w-3 rounded bg-[#e6f0e5] border border-[#285D49]" />
           Wydarzenie
         </span>
 
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-[#F8EBD8]" />
+          <span className="h-3 w-3 rounded bg-[#F8EBD8] border border-[#A87532]" />
           Zadanie
         </span>
       </div>

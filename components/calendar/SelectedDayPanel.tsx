@@ -28,10 +28,12 @@ export default function SelectedDayPanel({
 }: SelectedDayPanelProps) {
   const dayInfo = getCalendarDayInfo(selectedDate);
   return (
-    <aside className="flex h-screen w-full min-h-0 flex-col overflow-hidden rounded-l-[50px]  border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-2xl sm:p-6">
+    <aside className="flex h-[95vh] xl:h-screen w-full min-h-0 flex-col overflow-hidden rounded-[40px] xl:rounded-[50px] xl:rounded-r-none  border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-2xl sm:p-6">
       <div className="flex flex-col-reverse items-start justify-between gap-2">
         <div className="w-full">
-          <p className="text-sm font-semibold text-[#287969]">Wybrany dzień</p>
+          <p className="text-sm font-semibold text-[var(--greenTextLight)]">
+            Wybrany dzień
+          </p>
           <h2 className="mt-1 text-lg font-extrabold capitalize leading-6 text-[#19483D]">
             {formatFullDate(selectedDate)}
           </h2>
@@ -71,7 +73,7 @@ export default function SelectedDayPanel({
               onClick={onAdd}
               aria-label="Dodaj wpis w wybranym dniu"
               title="Dodaj wpis"
-              className="cursor-pointer rounded-xl bg-[#287969] py-2.5 px-5 text-white transition hover:bg-[#19483D] font-semibold uppercase flex items-center justify-center gap-1 text-xs"
+              className="cursor-pointer rounded-xl bg-[var(--greenText)] py-2.5 px-5 text-white transition hover:bg-[var(--greenText)]/90 font-semibold uppercase flex items-center justify-center gap-1 text-xs"
             >
               <MdAdd size={22} />
               Dodaj wpis
@@ -105,7 +107,9 @@ export default function SelectedDayPanel({
                 className="rounded-2xl border border-[#E1E7DE] bg-[#F8F9F4] p-4"
               >
                 <div className="flex items-start gap-2">
-                  <div className="mt-0.5 h-9 w-1 shrink-0 rounded-full bg-[#287969]" />
+                  <div
+                    className={`mt-0.5 h-9 w-1 shrink-0 rounded-full ${entry.type === "EVENT" ? "bg-[#287969]" : "bg-[#A87532]"} `}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
