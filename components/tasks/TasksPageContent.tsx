@@ -89,26 +89,24 @@ function StatCard({
   tone: "green" | "blue" | "orange" | "red";
 }) {
   const tones = {
-    green: "bg-[#E2F0EB] text-[#287969]",
+    green: "bg-[#E2F0EB] text-[var(--greenText)]",
     blue: "bg-[#E5ECF8] text-[#5876A5]",
     orange: "bg-[#F8EBDD] text-[#A56F43]",
     red: "bg-[#F8E6E2] text-[#BD6557]",
   };
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4">
+    <div className="flex items-center justify-center xl:justify-start gap-2 xl:gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] py-4 px-2 xl:px-10">
       <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${tones[tone]}`}
+        className={`flex h-8 w-8 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-full ${tones[tone]}`}
       >
-        <Icon size={24} />
+        <Icon className="text-lg xl:text-2xl" />
       </div>
 
-      <div className="min-w-0">
-        <p className="text-2xl font-extrabold leading-none text-[#263C35]">
-          {value}
-        </p>
-        <p className="mt-1 text-sm text-[#839087]">{label}</p>
-      </div>
+      <p className="text-lg xl:text-2xl font-extrabold text-[#263C35]">
+        {value}
+      </p>
+      <p className="text-xs xl:text-sm text-[#839087]">{label}</p>
     </div>
   );
 }
@@ -462,22 +460,22 @@ export default function TasksPageContent({
   return (
     <div className="space-y-7 pb-8">
       {/* Nagłówek */}
-      <section className="relative overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:p-8 lg:p-10">
-        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
-        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
+      <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:px-8 lg:px-10">
+        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]/60 -z-10" />
+        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]/60 -z-10" />
 
-        <div className="h-[230px] relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
-              <MdTaskAlt size={21} />
+        <div className="z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] lg:grid-cols-[2fr_1fr_2fr] ">
+          <div className="order-1">
+            <div className="mb-10 flex items-center  xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
+              <MdTaskAlt size={20} />
               <span>Organizacja domu</span>
             </div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#19483D] sm:text-5xl">
+            <h1 className="text-2xl uppercase text-center xl:text-left font-bold xl:font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl">
               Nasze zadania
             </h1>
 
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#718078]">
+            <p className="mt-4 text-center xl:text-left max-w-lg mx-auto xl:mx-0 text-base leading-7 text-[#647069]">
               Wszystko pod kontrolą — wspólnie i na czas. Planujcie codzienne
               obowiązki i realizujcie je razem.
             </p>
@@ -486,24 +484,26 @@ export default function TasksPageContent({
             <button
               type="button"
               onClick={openModal}
-              className="absolute top-1/2 left-1/2 -translate-1/2 cursor-pointer inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-[#287969] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#19483D] lg:self-center"
+              className="w-[180px] order-3 xl:order-2 mx-auto flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[var(--greenText)]/90"
             >
               <MdAdd size={22} />
               Dodaj zadanie
             </button>
           )}
-          <Image
-            src="/images/tasksHeader.svg"
-            alt="tasks"
-            width={400}
-            height={400}
-            className="h-full object-contain"
-          />
+          <div className="relative h-[100%] lg:block ml-auto order-2 xl:order-3">
+            <Image
+              src="/images/tasksHeader.svg"
+              alt="tasks"
+              width={400}
+              height={400}
+              className="h-full w-4/5 mx-auto object-contain"
+            />
+          </div>
         </div>
       </section>
 
       {/* Statystyki */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4 px-2 xl:px-10">
         <StatCard
           icon={MdOutlineAssignment}
           value={pendingCount}
@@ -533,15 +533,15 @@ export default function TasksPageContent({
       {/* Lista zadań */}
       <section className="rounded-3xl border border-[#E4E9E0] bg-[#FEFEFA] p-4 sm:p-6 lg:p-7">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 justify-center xl:justify-start">
             {filterOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setFilter(option.value)}
-                className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
+                className={`rounded-full px-4 py-3 text-sm font-semibold transition w-[45%] xl:w-auto ${
                   filter === option.value
-                    ? "bg-[#287969] text-white"
+                    ? "bg-[var(--greenText)] text-white"
                     : "bg-[#F3F5EF] text-[#38544A] hover:bg-[#E8EEE5]"
                 }`}
               >
@@ -549,18 +549,18 @@ export default function TasksPageContent({
               </button>
             ))}
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-col xl:flex-row gap-2 items-center my-5 xl:my-0">
             {canManageTasks && (
               <button
                 type="button"
                 onClick={openModal}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#E2F0EB] px-4 py-3 text-sm font-bold text-[#287969] hover:bg-[#D4E8DE]"
+                className="inline-flex items-center gap-2 mb-2 xl:mb-0 rounded-xl bg-[#E2F0EB] px-4 py-3 text-sm font-bold text-[var(--greenText)] hover:bg-[#D4E8DE]"
               >
                 <MdAdd size={19} />
                 Dodaj zadanie
               </button>
             )}
-            <label className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E0E6DE] bg-[#F8F9F4] px-4 xl:w-80">
+            <label className="flex min-w-0 w-full items-center gap-2 rounded-xl border border-[#E0E6DE] bg-[#F8F9F4] px-4 xl:w-80">
               <MdSearch className="shrink-0 text-[#718078]" size={21} />
               <input
                 value={search}

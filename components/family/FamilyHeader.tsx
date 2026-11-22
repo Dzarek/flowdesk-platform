@@ -23,7 +23,7 @@ export default function FamilyHeader({
             <MdFamilyRestroom size={20} />
             <span>To my!</span>
           </div>
-          <h1 className="text-2xl uppercase text-center xl:text-left font-bold tracking-tight text-[var(--greenText)] sm:text-4xl">
+          <h1 className="text-2xl uppercase text-center xl:text-left font-bold xl:font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl">
             Rodzina {familyName}
           </h1>
           <p className="mt-4 text-center xl:text-left max-w-lg mx-auto xl:mx-0 text-base leading-7 text-[#718078]">

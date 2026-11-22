@@ -177,7 +177,7 @@ export default function ShoppingPageContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+      <div className="grid grid-cols-1 items-strech gap-6 xl:grid-cols-[0.85fr_1.15fr]">
         {/* Lista produktów */}
         <section className="rounded-3xl border border-[#DCE4D9] bg-[#FEFEFA] p-5 sm:p-6">
           <div className="mb-5 flex items-center justify-between gap-3">
