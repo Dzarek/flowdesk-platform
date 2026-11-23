@@ -343,55 +343,64 @@ export default function SchedulePageContent({
   return (
     <div className="space-y-6 pb-8 text-[#263C35]">
       {/* Nagłówek */}
-      <section className="relative overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:p-8 lg:p-10">
-        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
-        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
+      <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:px-8 lg:px-10">
+        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]/60 -z-10" />
+        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]/60 -z-10" />
 
-        <div className="h-[230px] relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-10">
+        <div className="z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] lg:grid-cols-[1fr_2fr_1fr] ">
           <Image
             src="/images/scheduleHeader2.svg"
             alt="schedule"
             width={300}
             height={300}
-            className="h-full object-contain rotate-y-180"
+            className="h-full hidden xl:block object-contain rotate-y-180 order-1"
           />
-          <div className="max-w-2xl absolute top-1/2 left-1/2 -translate-1/2 flex flex-col items-center">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
-              <MdViewWeek size={21} />
+          <div className="max-w-2xl order-2 flex flex-col items-center text-center">
+            <div className="mb-10 flex items-center  xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
+              <MdViewWeek size={20} />
               <span>Organizacja rodziny</span>
             </div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#19483D] sm:text-5xl">
+            <h1 className="text-2xl uppercase text-center xl:text-left font-bold xl:font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl">
               Harmonogram
             </h1>
 
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#718078]">
+            <p className="mt-4 text-center xl:text-left max-w-lg mx-auto xl:mx-0 text-base leading-7 text-[#647069]">
               Wszystkie ważne zajęcia w jednym miejscu.
             </p>
             {canManageSchedule && (
               <button
                 type="button"
                 onClick={() => openAdd(new Date())}
-                className="mt-10 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
+                className="w-[220px] mt-10 mx-auto flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[var(--greenText)]/90"
               >
                 <MdAdd size={20} />
                 Dodaj wydarzenie
               </button>
             )}
           </div>
-
-          <Image
-            src="/images/scheduleHeader.svg"
-            alt="schedule"
-            width={330}
-            height={330}
-            className="h-full object-contain "
-          />
+          <div className="flex items-center justify-between w-full order-3">
+            <Image
+              src="/images/scheduleHeader.svg"
+              alt="schedule"
+              width={330}
+              height={330}
+              className="h-full w-[40%] xl:w-full object-contain"
+            />
+            <div className="h-10 w-[2px] bg-zinc-500"></div>
+            <Image
+              src="/images/scheduleHeader2.svg"
+              alt="schedule"
+              width={300}
+              height={300}
+              className="h-full w-[40%] pl-4 xl:hidden object-contain rotate-y-180"
+            />
+          </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 sm:p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="mt-10 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 sm:p-5">
+        <div className="flex flex-col gap-4 xl:flex-row text-center xl:text-left items-center xl:justify-between">
           <div>
             <p className="text-sm text-[#839087]">Wyświetlany tydzień</p>
             <h2 className="mt-1 text-xl font-extrabold">
@@ -399,7 +408,7 @@ export default function SchedulePageContent({
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 justify-center xl:justify-start mb-5 xl:mb-0">
             <button
               type="button"
               onClick={() => setWeekStart((date) => addDays(date, -7))}
@@ -426,7 +435,7 @@ export default function SchedulePageContent({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2 justify-center xl:justify-start">
           {initialMembers.map((member) => {
             const active = selectedMemberId === member.id;
 
@@ -436,46 +445,47 @@ export default function SchedulePageContent({
                 type="button"
                 onClick={() => setSelectedMemberId(member.id)}
                 aria-pressed={active}
-                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
+                className={`flex items-center min-w-0 w-[45%] xl:w-auto gap-2 rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
                   active
                     ? "border-[#287969] bg-[#E2F0EB] text-[#19483D]"
                     : "border-[#DCE4D9] bg-white text-[#65746A] hover:bg-[#F5F6EE]"
                 }`}
               >
-                <>
-                  {member.imageUrl ? (
-                    <Image
-                      src={member.imageUrl}
-                      alt={member.name}
-                      height={50}
-                      width={50}
-                      className="rounded-full object-cover w-6 h-6"
-                    />
-                  ) : (
-                    <span
-                      className={`flex shrink-0 items-center justify-center rounded-full font-bold text-[#38544A] `}
-                      style={{ backgroundColor: member.color }}
-                      title={member.name}
-                    >
-                      {member.name
-                        .trim()
-                        .split(/\s+/)
-                        .slice(0, 2)
-                        .map((part) => part[0])
-                        .join("")
-                        .toUpperCase()}
-                    </span>
-                  )}
-                </>
-                {member.name}
+                {member.imageUrl ? (
+                  <Image
+                    src={member.imageUrl}
+                    alt={member.name}
+                    height={50}
+                    width={50}
+                    className="shrink-0 rounded-full object-cover w-6 h-6"
+                  />
+                ) : (
+                  <span
+                    className="flex shrink-0 items-center justify-center rounded-full font-bold text-[#38544A]"
+                    style={{ backgroundColor: member.color }}
+                    title={member.name}
+                  >
+                    {member.name
+                      .trim()
+                      .split(/\s+/)
+                      .slice(0, 2)
+                      .map((part) => part[0])
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                )}
+                <span className="min-w-0 truncate">{member.name}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-10 flex items-center justify-between gap-3 border-b border-[#DCE4D9] px-4 py-3">
+        <div className="mt-10 flex flex-col xl:flex-row items-center justify-between gap-3 border-b border-[#DCE4D9] px-4 py-3">
           <div className="flex items-center gap-2">
-            <MdCalendarMonth className="text-[#287969]" size={21} />
+            <MdCalendarMonth
+              className="text-[var(--greenTextLight)]"
+              size={21}
+            />
             <h2 className="font-extrabold">Plan: {currentMember.name}</h2>
           </div>
           <span className="text-xs text-[#839087]">
@@ -506,14 +516,18 @@ export default function SchedulePageContent({
                   >
                     <p
                       className={`text-xs font-bold ${
-                        today ? "text-[#287969]" : "text-[#839087]"
+                        today
+                          ? "text-[var(--greenTextLight)]"
+                          : "text-[#839087]"
                       }`}
                     >
                       {DAYS[index]}
                     </p>
                     <p
                       className={`mx-auto mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-extrabold ${
-                        today ? "bg-[#287969] text-white" : "text-[#263C35]"
+                        today
+                          ? "bg-[var(--greenTextLight)] text-white"
+                          : "text-[#263C35]"
                       }`}
                     >
                       {date.getDate()}
@@ -566,14 +580,14 @@ export default function SchedulePageContent({
                     style={{
                       height: GRID_HEIGHT,
                       backgroundImage:
-                        "repeating-linear-gradient(to bottom, transparent 0, transparent 63px, #E9EDE6 63px, #E9EDE6 64px)",
+                        "repeating-linear-gradient(to bottom, transparent 0, transparent 71px, #E9EDE6 71px, #E9EDE6 72px)",
                     }}
                   >
-                    {Array.from({ length: 15 }, (_, index) => (
+                    {Array.from({ length: 29 }, (_, index) => (
                       <div
                         key={index}
                         className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-[#F0F2ED]"
-                        style={{ top: index * HOUR_HEIGHT + HOUR_HEIGHT / 2 }}
+                        style={{ top: (index + 1) * (HOUR_HEIGHT / 2) }}
                       />
                     ))}
 
@@ -668,7 +682,7 @@ export default function SchedulePageContent({
             role="dialog"
             aria-modal="true"
             aria-labelledby="schedule-modal-title"
-            className="my-auto w-full max-h-[90vh] overflow-y-auto max-w-lg rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-xl sm:p-6"
+            className="my-auto w-full max-h-[90vh] overflow-y-auto max-w-lg rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-5 shadow-xl sm:p-6 py-8 sm:py-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -802,7 +816,10 @@ export default function SchedulePageContent({
               </label>
               <label className="block">
                 <span className="mb-1.5 flex items-center gap-2 text-sm font-bold">
-                  <MdStickyNote2 size={18} className="text-[#287969]" />
+                  <MdStickyNote2
+                    size={18}
+                    className="text-[var(--greenTextLight)]"
+                  />
                   Notatka do tej aktywności
                 </span>
 
@@ -832,7 +849,7 @@ export default function SchedulePageContent({
                       repeatWeekly: event.target.checked,
                     })
                   }
-                  className="mt-1 h-4 w-4 accent-[#287969]"
+                  className="mt-1 h-4 w-4 accent-[var(--greenTextLight)]"
                 />
                 <span>
                   <span className="flex items-center gap-2 text-sm font-bold">
@@ -875,7 +892,7 @@ export default function SchedulePageContent({
                   <button
                     type="button"
                     onClick={saveEntry}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D]"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[var(--greenTextLight)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[var(--greenTextLight)]/80"
                   >
                     {editingEntry && <MdEdit size={17} />}
                     {editingEntry ? "Zapisz zmiany" : "Dodaj"}
