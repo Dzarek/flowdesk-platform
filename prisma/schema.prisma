@@ -33,6 +33,13 @@ enum RecurrenceFrequency {
   YEARLY
 }
 
+enum ScheduleEntryType {
+  WORK
+  SCHOOL
+  ACTIVITY
+  OTHER
+}
+
 model User {
   id       String   @id @default(cuid())
   email    String   @unique
@@ -48,13 +55,14 @@ model User {
 
   passwordResetTokens PasswordResetToken[]
 
-  sentFamilyInvitations FamilyInvitation[] @relation("InvitationSender")
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
+  sentFamilyInvitations  FamilyInvitation[] @relation("InvitationSender")
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  createdTasks           Task[]             @relation("TaskCreator")
+  createdCalendarEntries CalendarEntry[]    @relation("CalendarEntryCreator")
+  createdScheduleEntries ScheduleEntry[]    @relation("ScheduleEntryCreator")
 
   @@index([familyId])
-  createdTasks          Task[]          @relation("TaskCreator")
-createdCalendarEntries CalendarEntry[] @relation("CalendarEntryCreator")
 }
 
 model Family {
@@ -68,10 +76,11 @@ model Family {
   familyMembers FamilyMember[]
   invitations   FamilyInvitation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tasks          Task[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  tasks           Task[]
   calendarEntries CalendarEntry[]
+  scheduleEntries ScheduleEntry[]
 }
 
 model FamilyMember {
@@ -94,12 +103,13 @@ model FamilyMember {
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  assignedTasks   Task[]
+  scheduleEntries ScheduleEntry[]
 
   @@index([familyId])
   @@index([familyId, role])
-  assignedTasks Task[]
 }
 
 model FamilyInvitation {
@@ -142,11 +152,11 @@ model PasswordResetToken {
 }
 
 model Task {
-  id          String  @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  description String  @default("")
+  description String    @default("")
   dueDate     DateTime? @db.Date
-  completed   Boolean @default(false)
+  completed   Boolean   @default(false)
 
   familyId String
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
@@ -155,7 +165,7 @@ model Task {
   assignee   FamilyMember? @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
 
   createdByUserId String?
-  createdBy       User? @relation("TaskCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdBy       User?   @relation("TaskCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -176,12 +186,61 @@ model CalendarEntry {
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   createdByUserId String?
-  createdBy       User? @relation("CalendarEntryCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdBy       User?   @relation("CalendarEntryCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   recurrenceFrequency RecurrenceFrequency?
 
   @@index([familyId, date])
   @@index([createdByUserId])
+}
+
+model ScheduleEntry {
+  id          String            @id @default(cuid())
+  title       String
+  description String            @default("")
+  type        ScheduleEntryType
+
+  startTime String
+  endTime   String
+
+  repeatWeekly Boolean   @default(false)
+  dayOfWeek    Int?
+  date         DateTime? @db.Date
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  memberId String
+  member   FamilyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdByUserId String?
+  createdBy       User?   @relation("ScheduleEntryCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  notes ScheduleNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId, memberId])
+  @@index([familyId, dayOfWeek])
+  @@index([familyId, date])
+  @@index([memberId])
+  @@index([createdByUserId])
+}
+
+model ScheduleNote {
+  id      String   @id @default(cuid())
+  entryId String
+  date    DateTime @db.Date
+  text    String
+
+  entry ScheduleEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entryId, date])
+  @@index([date])
 }

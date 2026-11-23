@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   MdAdd,
   MdArrowBack,
@@ -12,15 +12,27 @@ import {
   MdRepeat,
   MdViewWeek,
 } from "react-icons/md";
-import { mockScheduleEntries } from "@/lib/schedule/mock-data";
 import type { ScheduleEntry, ScheduleEntryType } from "@/lib/schedule/types";
 
-import { mockScheduleNotes } from "@/lib/schedule/mock-notes";
 import type { ScheduleNote } from "@/lib/schedule/types";
 import { MdStickyNote2 } from "react-icons/md";
 
-import { mockFamilyMembers } from "@/lib/family/mock-data";
 import Image from "next/image";
+import {
+  saveScheduleEntry,
+  deleteScheduleEntry,
+  saveScheduleNote,
+} from "@/app/(app)/harmonogram/actions";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+type ScheduleMember = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  color: string;
+  role: string;
+};
 
 const DAYS = [
   "Poniedziałek",
@@ -36,13 +48,6 @@ const START_HOUR = 7;
 const END_HOUR = 22;
 const HOUR_HEIGHT = 72;
 const GRID_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
-
-// const MEMBERS = [
-//   { id: "member-1", name: "Jarek", initials: "J", color: "#DDEBE2" },
-//   { id: "member-2", name: "Anna", initials: "A", color: "#F3E4D6" },
-//   { id: "member-3", name: "Ola", initials: "O", color: "#E4E5F5" },
-//   { id: "member-4", name: "Maja", initials: "M", color: "#F5E3EB" },
-// ];
 
 const TYPE_OPTIONS: { value: ScheduleEntryType; label: string }[] = [
   { value: "WORK", label: "Praca" },
@@ -162,24 +167,38 @@ function emptyForm(date: Date, startTime = "09:00"): EntryForm {
   };
 }
 
-export default function SchedulePageContent() {
-  const [entries, setEntries] = useState<ScheduleEntry[]>(mockScheduleEntries);
-  const [selectedMemberId, setSelectedMemberId] = useState("member-1");
+type SchedulePageContentProps = {
+  canManageSchedule: boolean;
+  initialEntries: ScheduleEntry[];
+  initialNotes: ScheduleNote[];
+  initialMembers: ScheduleMember[];
+};
+
+export default function SchedulePageContent({
+  canManageSchedule,
+  initialEntries,
+  initialNotes,
+  initialMembers,
+}: SchedulePageContentProps) {
+  const [entries, setEntries] = useState<ScheduleEntry[]>(initialEntries);
+  const [selectedMemberId, setSelectedMemberId] = useState(
+    initialMembers[0]?.id ?? "",
+  );
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
   const [editingEntry, setEditingEntry] = useState<ScheduleEntry | null>(null);
   const [form, setForm] = useState<EntryForm | null>(null);
-  const [formError, setFormError] = useState("");
-  const [notes, setNotes] = useState<ScheduleNote[]>(mockScheduleNotes);
+  const [notes, setNotes] = useState<ScheduleNote[]>(initialNotes);
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)),
     [weekStart],
   );
+  const router = useRouter();
 
   const todayString = toDateString(new Date());
   const currentMember =
-    mockFamilyMembers.find((member) => member.id === selectedMemberId) ??
-    mockFamilyMembers[0];
+    initialMembers.find((member) => member.id === selectedMemberId) ??
+    initialMembers[0];
 
   const isCurrentWeek =
     toDateString(weekStart) === toDateString(getMonday(new Date()));
@@ -187,6 +206,14 @@ export default function SchedulePageContent() {
   const visibleEntries = entries.filter(
     (entry) => entry.memberId === selectedMemberId,
   );
+
+  useEffect(() => {
+    setEntries(initialEntries);
+  }, [initialEntries]);
+
+  useEffect(() => {
+    setNotes(initialNotes);
+  }, [initialNotes]);
 
   function entriesForDate(date: Date) {
     const dateString = toDateString(date);
@@ -204,7 +231,6 @@ export default function SchedulePageContent() {
   function openAdd(date: Date, startTime = "09:00") {
     setEditingEntry(null);
     setForm(emptyForm(date, startTime));
-    setFormError("");
   }
 
   function openEdit(entry: ScheduleEntry, date: Date) {
@@ -223,20 +249,18 @@ export default function SchedulePageContent() {
             note.entryId === entry.id && note.date === toDateString(date),
         )?.text ?? "",
     });
-    setFormError("");
   }
 
   function closeForm() {
     setForm(null);
     setEditingEntry(null);
-    setFormError("");
   }
 
-  function saveEntry() {
+  async function saveEntry() {
     if (!form) return;
 
     if (!form.title.trim()) {
-      setFormError("Wpisz nazwę wydarzenia.");
+      toast.error("Wpisz nazwę wydarzenia.");
       return;
     }
 
@@ -246,70 +270,56 @@ export default function SchedulePageContent() {
       !form.endTime ||
       minutes(form.endTime) <= minutes(form.startTime)
     ) {
-      setFormError("Sprawdź datę oraz godziny wydarzenia.");
+      toast.error("Sprawdź datę oraz godziny wydarzenia.");
       return;
     }
 
-    const selectedDate = parseDate(form.date);
-
-    const entry: ScheduleEntry = {
-      id: editingEntry?.id ?? `schedule-${Date.now()}`,
+    const result = await saveScheduleEntry({
+      id: editingEntry?.id,
       memberId: selectedMemberId,
       title: form.title.trim(),
       description: form.description.trim(),
       type: form.type,
-      dayOfWeek: dayNumber(selectedDate),
+      date: form.date,
       startTime: form.startTime,
       endTime: form.endTime,
       repeatWeekly: form.repeatWeekly,
-      date: form.repeatWeekly ? null : form.date,
-    };
-
-    setEntries((previous) =>
-      editingEntry
-        ? previous.map((item) => (item.id === editingEntry.id ? entry : item))
-        : [...previous, entry],
-    );
-    const noteDate = form.date;
-    const noteText = form.note.trim();
-
-    setNotes((previous) => {
-      const existing = previous.find(
-        (note) => note.entryId === entry.id && note.date === noteDate,
-      );
-
-      if (!noteText) {
-        return previous.filter(
-          (note) => !(note.entryId === entry.id && note.date === noteDate),
-        );
-      }
-
-      if (existing) {
-        return previous.map((note) =>
-          note.id === existing.id ? { ...note, text: noteText } : note,
-        );
-      }
-
-      return [
-        ...previous,
-        {
-          id: `note-${Date.now()}`,
-          entryId: entry.id,
-          date: noteDate,
-          text: noteText,
-        },
-      ];
     });
+
+    if (!result.success) {
+      toast.error(result.error ?? "Wystąpił nieoczekiwany błąd.");
+      return;
+    }
+
+    const noteResult = await saveScheduleNote({
+      entryId: result.entryId,
+      date: form.date,
+      text: form.note,
+    });
+
+    if (!noteResult.success) {
+      toast.error(
+        `Wydarzenie zapisano, ale nie udało się zapisać notatki: ${noteResult.error}`,
+      );
+      return;
+    }
+
     closeForm();
+    router.refresh();
   }
 
-  function deleteEntry() {
+  async function deleteEntry() {
     if (!editingEntry) return;
 
-    setEntries((previous) =>
-      previous.filter((item) => item.id !== editingEntry.id),
-    );
+    const result = await deleteScheduleEntry(editingEntry.id);
+
+    if (!result.success) {
+      toast.error(result.error ?? "Nie udało się usunąć wydarzenia.");
+      return;
+    }
+
     closeForm();
+    router.refresh();
   }
 
   function handleGridClick(
@@ -358,14 +368,16 @@ export default function SchedulePageContent() {
             <p className="mt-4 max-w-xl text-base leading-7 text-[#718078]">
               Wszystkie ważne zajęcia w jednym miejscu.
             </p>
-            <button
-              type="button"
-              onClick={() => openAdd(new Date())}
-              className="mt-10 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
-            >
-              <MdAdd size={20} />
-              Dodaj wydarzenie
-            </button>
+            {canManageSchedule && (
+              <button
+                type="button"
+                onClick={() => openAdd(new Date())}
+                className="mt-10 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
+              >
+                <MdAdd size={20} />
+                Dodaj wydarzenie
+              </button>
+            )}
           </div>
 
           <Image
@@ -415,7 +427,7 @@ export default function SchedulePageContent() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {mockFamilyMembers.map((member) => {
+          {initialMembers.map((member) => {
             const active = selectedMemberId === member.id;
 
             return (
@@ -431,9 +443,9 @@ export default function SchedulePageContent() {
                 }`}
               >
                 <>
-                  {member.img ? (
+                  {member.imageUrl ? (
                     <Image
-                      src={member.img}
+                      src={member.imageUrl}
                       alt={member.name}
                       height={50}
                       width={50}
@@ -541,8 +553,14 @@ export default function SchedulePageContent() {
                 return (
                   <div
                     key={dateString}
-                    onClick={(event) => handleGridClick(event, date)}
-                    className={`relative cursor-crosshair border-r border-[#E9EDE6] last:border-r-0 ${
+                    onClick={
+                      canManageSchedule
+                        ? (event) => handleGridClick(event, date)
+                        : undefined
+                    }
+                    className={`relative ${
+                      canManageSchedule ? "cursor-crosshair" : "cursor-default"
+                    } border-r border-[#E9EDE6] last:border-r-0 ${
                       dateString === todayString ? "bg-[#FAFCF8]" : ""
                     }`}
                     style={{
@@ -655,13 +673,21 @@ export default function SchedulePageContent() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-[#839087]">
-                  {editingEntry ? "EDYCJA WYDARZENIA" : "NOWE WYDARZENIE"}
+                  {!canManageSchedule
+                    ? "PODGLĄD WYDARZENIA"
+                    : editingEntry
+                      ? "EDYCJA WYDARZENIA"
+                      : "NOWE WYDARZENIE"}
                 </p>
                 <h2
                   id="schedule-modal-title"
                   className="mt-1 text-xl font-extrabold"
                 >
-                  {editingEntry ? "Edytuj wydarzenie" : "Dodaj wydarzenie"}
+                  {!canManageSchedule
+                    ? "Szczegóły wydarzenia"
+                    : editingEntry
+                      ? "Edytuj wydarzenie"
+                      : "Dodaj wydarzenie"}
                 </h2>
                 <p className="mt-1 text-sm text-[#839087]">
                   Harmonogram: {currentMember.name}
@@ -686,6 +712,7 @@ export default function SchedulePageContent() {
                 <input
                   autoFocus
                   value={form.title}
+                  disabled={!canManageSchedule}
                   onChange={(event) =>
                     setForm({ ...form, title: event.target.value })
                   }
@@ -700,6 +727,7 @@ export default function SchedulePageContent() {
                 </span>
                 <select
                   value={form.type}
+                  disabled={!canManageSchedule}
                   onChange={(event) =>
                     setForm({
                       ...form,
@@ -720,6 +748,7 @@ export default function SchedulePageContent() {
                 <span className="mb-1.5 block text-sm font-bold">Data</span>
                 <input
                   type="date"
+                  disabled={!canManageSchedule}
                   value={form.date}
                   onChange={(event) =>
                     setForm({ ...form, date: event.target.value })
@@ -733,6 +762,7 @@ export default function SchedulePageContent() {
                   <span className="mb-1.5 block text-sm font-bold">Od</span>
                   <input
                     type="time"
+                    disabled={!canManageSchedule}
                     value={form.startTime}
                     onChange={(event) =>
                       setForm({ ...form, startTime: event.target.value })
@@ -745,6 +775,7 @@ export default function SchedulePageContent() {
                   <span className="mb-1.5 block text-sm font-bold">Do</span>
                   <input
                     type="time"
+                    disabled={!canManageSchedule}
                     value={form.endTime}
                     onChange={(event) =>
                       setForm({ ...form, endTime: event.target.value })
@@ -760,6 +791,7 @@ export default function SchedulePageContent() {
                 </span>
                 <textarea
                   rows={3}
+                  disabled={!canManageSchedule}
                   value={form.description}
                   onChange={(event) =>
                     setForm({ ...form, description: event.target.value })
@@ -777,6 +809,7 @@ export default function SchedulePageContent() {
                 <textarea
                   rows={3}
                   value={form.note}
+                  disabled={!canManageSchedule}
                   onChange={(event) =>
                     setForm({ ...form, note: event.target.value })
                   }
@@ -791,6 +824,7 @@ export default function SchedulePageContent() {
               <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#DCE4D9] bg-[#F5F6EE] p-3">
                 <input
                   type="checkbox"
+                  disabled={!canManageSchedule}
                   checked={form.repeatWeekly}
                   onChange={(event) =>
                     setForm({
@@ -812,17 +846,11 @@ export default function SchedulePageContent() {
                   </span>
                 </span>
               </label>
-
-              {formError && (
-                <p role="alert" className="text-sm font-semibold text-red-600">
-                  {formError}
-                </p>
-              )}
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <div>
-                {editingEntry && (
+                {canManageSchedule && editingEntry && (
                   <button
                     type="button"
                     onClick={deleteEntry}
@@ -840,16 +868,19 @@ export default function SchedulePageContent() {
                   onClick={closeForm}
                   className="rounded-xl border border-[#DCE4D9] px-4 py-2.5 text-sm font-bold hover:bg-[#F5F6EE]"
                 >
-                  Anuluj
+                  {canManageSchedule ? "Anuluj" : "Zamknij"}
                 </button>
-                <button
-                  type="button"
-                  onClick={saveEntry}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D]"
-                >
-                  {editingEntry && <MdEdit size={17} />}
-                  {editingEntry ? "Zapisz zmiany" : "Dodaj"}
-                </button>
+
+                {canManageSchedule && (
+                  <button
+                    type="button"
+                    onClick={saveEntry}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D]"
+                  >
+                    {editingEntry && <MdEdit size={17} />}
+                    {editingEntry ? "Zapisz zmiany" : "Dodaj"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
