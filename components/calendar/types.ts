@@ -45,7 +45,6 @@ export type CalendarEntryModalProps = {
   editingEntry: CalendarEntry | null;
   selectedDate: string;
   form: CalendarFormValues;
-  error: string;
   isSaving: boolean;
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;

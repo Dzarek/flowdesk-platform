@@ -24,6 +24,10 @@ import {
   createFamilyInvitation,
   revokeFamilyInvitation,
   transferFamilyHead,
+  activateChildAccount,
+  promoteChildToAdult,
+  deactivateChildAccount,
+  demoteAdultToChild,
 } from "@/app/(app)/rodzina/actions";
 import type { FamilyMember, FamilyMemberRole } from "@/lib/family/types";
 import { roleLabels } from "@/components/family/constants";
@@ -34,6 +38,7 @@ import type {
   FamilyPageContentProps,
   FilterType,
 } from "@/components/family/types";
+import toast from "react-hot-toast";
 
 export default function FamilyPageContent({
   initialMembers,
@@ -58,7 +63,6 @@ export default function FamilyPageContent({
     null,
   );
 
-  const [error, setError] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
   const [removeAvatar, setRemoveAvatar] = useState(false);
@@ -72,6 +76,13 @@ export default function FamilyPageContent({
     useState<FamilyInvitationItem[]>(initialInvitations);
   const [invitationError, setInvitationError] = useState("");
   const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [memberToActivate, setMemberToActivate] = useState<FamilyMember | null>(
+    null,
+  );
+
+  const [activationPassword, setActivationPassword] = useState("");
+  const [activationPasswordConfirm, setActivationPasswordConfirm] =
+    useState("");
 
   useEffect(() => {
     setInvitations(initialInvitations);
@@ -121,7 +132,6 @@ export default function FamilyPageContent({
       roleDescription: "",
     });
     setPhotoPreview(null);
-    setError("");
     setIsModalOpen(true);
     setSelectedAvatar(null);
     setRemoveAvatar(false);
@@ -131,14 +141,12 @@ export default function FamilyPageContent({
     setIsModalOpen(false);
     setEditingMember(null);
     setPhotoPreview(null);
-    setError("");
     setSelectedAvatar(null);
     setRemoveAvatar(false);
   }
 
   async function handleAddMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
 
     const formData = new FormData();
 
@@ -154,7 +162,7 @@ export default function FamilyPageContent({
     const result = await createChild(formData);
 
     if (!result.success) {
-      setError(result.error ?? "Nie udało się dodać dziecka.");
+      toast.error(result.error ?? "Nie udało się dodać dziecka.");
       return;
     }
 
@@ -170,12 +178,10 @@ export default function FamilyPageContent({
   async function handleDeleteMember() {
     if (!memberToDelete || memberToDelete.isCurrentUser) return;
 
-    setError("");
-
     const result = await deleteFamilyMember(memberToDelete.id);
 
     if (!result.success) {
-      setError(result.message ?? "Nie udało się usunąć profilu.");
+      toast.error(result.message ?? "Nie udało się usunąć profilu.");
       return;
     }
 
@@ -246,8 +252,6 @@ export default function FamilyPageContent({
 
     if (!editingMember || !canEditMember(editingMember)) return;
 
-    setError("");
-
     const formData = new FormData();
 
     formData.append("name", form.name);
@@ -263,7 +267,7 @@ export default function FamilyPageContent({
     const result = await updateFamilyMember(editingMember.id, formData);
 
     if (!result.success) {
-      setError(result.error ?? "Nie udało się zaktualizować profilu.");
+      toast.error(result.error ?? "Nie udało się zaktualizować profilu.");
       return;
     }
 
@@ -292,12 +296,10 @@ export default function FamilyPageContent({
   async function handleTransferHead() {
     if (!memberToTransfer || memberToTransfer.role !== "ADULT") return;
 
-    setError("");
-
     const result = await transferFamilyHead(memberToTransfer.id);
 
     if (!result.success) {
-      setError(result.message ?? "Nie udało się przekazać roli HEAD.");
+      toast.error(result.message ?? "Nie udało się przekazać roli HEAD.");
       return;
     }
 
@@ -307,6 +309,85 @@ export default function FamilyPageContent({
       router.refresh();
     });
   }
+
+  async function handleActivateChild(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!memberToActivate) return;
+
+    if (activationPassword.length < 8) {
+      toast.error("Hasło musi mieć minimum 8 znaków.");
+      return;
+    }
+
+    if (activationPassword !== activationPasswordConfirm) {
+      toast.error("Podane hasła nie są identyczne.");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await activateChildAccount(
+        memberToActivate.id,
+        activationPassword,
+      );
+
+      if (!result.success) {
+        toast.error(result.error ?? "Nie udało się aktywować konta.");
+        return;
+      }
+
+      toast.success("Konto dziecka zostało aktywowane.");
+
+      setMemberToActivate(null);
+      setActivationPassword("");
+      setActivationPasswordConfirm("");
+
+      router.refresh();
+    });
+  }
+
+  async function handlePromoteChild(member: FamilyMember) {
+    if (member.role !== "CHILD" || !member.userId) return;
+
+    startTransition(async () => {
+      const result = await promoteChildToAdult(member.id);
+
+      if (!result.success) {
+        toast.error(result.error ?? "Nie udało się zmienić roli.");
+        return;
+      }
+
+      toast.success("Rola członka rodziny została zmieniona na dorosłego.");
+      router.refresh();
+    });
+  }
+  const handleDeactivate = (member: FamilyMember) => {
+    startTransition(async () => {
+      const result = await deactivateChildAccount(member.id);
+
+      if (!result.success) {
+        toast.error("Nie udało się dezaktywować konta dziecka");
+        return;
+      }
+
+      toast.success("Konto dziecka zostało dezaktywowane.");
+      router.refresh();
+    });
+  };
+
+  const handleDemote = (member: FamilyMember) => {
+    startTransition(async () => {
+      const result = await demoteAdultToChild(member.id);
+
+      if (!result.success) {
+        toast.error("Nie udało się zmienić roli na dziecko");
+        return;
+      }
+
+      toast.success("Rola została zmieniona na dziecko.");
+      router.refresh();
+    });
+  };
 
   return (
     <div className="space-y-7 xl:pb-6">
@@ -337,6 +418,10 @@ export default function FamilyPageContent({
         onRevokeInvitation={handleRevokeInvitation}
         onAddChild={openModal}
         onInvite={openInviteModal}
+        onActivate={setMemberToActivate}
+        onPromote={handlePromoteChild}
+        onDeactivate={handleDeactivate}
+        onDemote={handleDemote}
       />
 
       {/* Modal dodawania */}
@@ -414,6 +499,7 @@ export default function FamilyPageContent({
                 <input
                   id="member-email"
                   type="email"
+                  required
                   maxLength={254}
                   value={form.email}
                   onChange={(event) =>
@@ -475,13 +561,15 @@ export default function FamilyPageContent({
                         ];
 
                         if (!allowedTypes.includes(file.type)) {
-                          setError("Dozwolone formaty zdjęć: JPG, PNG i WebP.");
+                          toast.error(
+                            "Dozwolone formaty zdjęć: JPG, PNG i WebP.",
+                          );
                           event.target.value = "";
                           return;
                         }
 
                         if (file.size > 5 * 1024 * 1024) {
-                          setError("Zdjęcie może mieć maksymalnie 5 MB.");
+                          toast.error("Zdjęcie może mieć maksymalnie 5 MB.");
                           event.target.value = "";
                           return;
                         }
@@ -493,12 +581,11 @@ export default function FamilyPageContent({
                             setSelectedAvatar(file);
                             setPhotoPreview(reader.result);
                             setRemoveAvatar(false);
-                            setError("");
                           }
                         };
 
                         reader.onerror = () => {
-                          setError("Nie udało się odczytać zdjęcia.");
+                          toast.error("Nie udało się odczytać zdjęcia.");
                         };
 
                         reader.readAsDataURL(file);
@@ -553,11 +640,6 @@ export default function FamilyPageContent({
                   className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10 text-sm xl:text-base"
                 />
               </div>
-              {error && (
-                <p role="alert" className="text-sm font-medium text-red-600">
-                  {error}
-                </p>
-              )}
 
               <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                 <button
@@ -577,6 +659,107 @@ export default function FamilyPageContent({
                     : editingMember
                       ? "Zapisz zmiany"
                       : "Dodaj dziecko"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+      {memberToActivate && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#193C32]/40 p-4 backdrop-blur-sm">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="activate-child-title"
+            className="w-full max-w-md rounded-3xl bg-[#FEFEFA] p-6 shadow-xl"
+          >
+            <div className="flex items-center justify-between">
+              <h2
+                id="activate-child-title"
+                className="text-xl font-extrabold text-[#19483D]"
+              >
+                Aktywuj konto dziecka
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setMemberToActivate(null)}
+                className="cursor-pointer rounded-xl p-2 text-[#718078] hover:bg-[#F0F3EB]"
+              >
+                <MdClose size={22} />
+              </button>
+            </div>
+
+            <p className="mt-3 text-sm text-[#718078]">
+              Tworzysz konto dla {memberToActivate.name}. Dane logowania będą
+              przypisane do istniejącego profilu.
+            </p>
+
+            <p className="mt-2 text-sm font-medium text-[#38544A]">
+              {memberToActivate.email}
+            </p>
+
+            <form onSubmit={handleActivateChild} className="mt-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="activation-password"
+                  className="mb-2 block text-sm font-semibold text-[#38544A]"
+                >
+                  Hasło
+                </label>
+
+                <input
+                  id="activation-password"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={activationPassword}
+                  onChange={(event) =>
+                    setActivationPassword(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="activation-password-confirm"
+                  className="mb-2 block text-sm font-semibold text-[#38544A]"
+                >
+                  Powtórz hasło
+                </label>
+
+                <input
+                  id="activation-password-confirm"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={activationPasswordConfirm}
+                  onChange={(event) =>
+                    setActivationPasswordConfirm(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-[#DCE4D9] bg-white px-4 py-3 text-[#263C35] outline-none focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => setMemberToActivate(null)}
+                  className="cursor-pointer disabled:cursor-not-allowed rounded-xl border border-[#DCE4D9] px-5 py-3 text-sm font-semibold text-[#38544A]"
+                >
+                  Anuluj
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-bold text-white hover:bg-[#19483D]"
+                >
+                  {isPending ? "Aktywowanie..." : "Aktywuj konto"}
                 </button>
               </div>
             </form>

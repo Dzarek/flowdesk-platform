@@ -50,7 +50,6 @@ export default function CalendarPageContent({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<CalendarEntry | null>(null);
-  const [error, setError] = useState("");
   const [form, setForm] = useState<CalendarFormValues>(EMPTY_FORM);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -148,7 +147,6 @@ export default function CalendarPageContent({
 
     setEditingEntry(null);
     setForm(EMPTY_FORM);
-    setError("");
     setIsModalOpen(true);
   }
 
@@ -172,7 +170,6 @@ export default function CalendarPageContent({
       recurrenceFrequency: entry.recurrenceFrequency ?? "",
     });
 
-    setError("");
     setIsModalOpen(true);
   }
 
@@ -181,7 +178,6 @@ export default function CalendarPageContent({
 
     setIsModalOpen(false);
     setEditingEntry(null);
-    setError("");
   }
 
   function updateFormField(field: keyof CalendarFormValues, value: string) {
@@ -199,12 +195,11 @@ export default function CalendarPageContent({
     const title = form.title.trim();
 
     if (!title) {
-      setError("Podaj tytuł wydarzenia.");
+      toast.error("Podaj tytuł wydarzenia.");
       return;
     }
 
     setIsSaving(true);
-    setError("");
 
     try {
       const input = {
@@ -220,7 +215,6 @@ export default function CalendarPageContent({
         : await createCalendarEntry(input);
 
       if (!result.success) {
-        setError(result.message);
         toast.error(result.message);
         return;
       }
@@ -236,7 +230,6 @@ export default function CalendarPageContent({
       toast.success(result.message);
     } catch (error) {
       console.error("Błąd podczas zapisywania wydarzenia:", error);
-      setError("Nie udało się zapisać wydarzenia. Spróbuj ponownie.");
       toast.error("Nie udało się zapisać wydarzenia.");
     } finally {
       setIsSaving(false);
@@ -350,7 +343,6 @@ export default function CalendarPageContent({
         editingEntry={editingEntry}
         selectedDate={selectedDate}
         form={form}
-        error={error}
         isSaving={isSaving}
         onClose={closeModal}
         onSubmit={handleSaveEntry}

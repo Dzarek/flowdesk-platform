@@ -182,7 +182,7 @@ export default function AuthForm() {
 
         {/* TYLNA STRONA KARTY — FORMULARZ */}
 
-        <div className="rounded-[28px] border border-white/70 bg-[#FFFEFA]/70 p-5 shadow-[0_20px_70px_-25px_rgba(36,76,59,0.22)] backdrop-blur-xl [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-7">
+        <div className="rounded-[28px] border border-white/70 bg-[#FFFEFA] p-5 shadow-[0_20px_70px_-25px_rgba(36,76,59,0.22)] backdrop-blur-xl [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-7">
           <div className="mb-1 flex justify-start">
             <button
               type="button"

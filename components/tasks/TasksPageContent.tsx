@@ -268,7 +268,6 @@ export default function TasksPageContent({
   const [filter, setFilter] = useState<TaskFilter>("ALL");
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set());
 
@@ -325,13 +324,11 @@ export default function TasksPageContent({
       dueDate: "",
       assigneeId: currentMemberId,
     });
-    setError("");
     setIsModalOpen(true);
   }
 
   function closeModal() {
     setIsModalOpen(false);
-    setError("");
   }
 
   async function handleAddTask(event: FormEvent<HTMLFormElement>) {
@@ -342,7 +339,7 @@ export default function TasksPageContent({
     const title = form.title.trim();
 
     if (!title) {
-      setError("Podaj tytuł zadania.");
+      toast.error("Podaj tytuł zadania.");
       return;
     }
 
@@ -357,7 +354,6 @@ export default function TasksPageContent({
       });
 
       if (!result.success) {
-        setError(result.message);
         toast.error(result.message);
         return;
       }
@@ -791,12 +787,6 @@ export default function TasksPageContent({
                   ))}
                 </select>
               </div>
-
-              {error && (
-                <p role="alert" className="text-sm font-medium text-red-600">
-                  {error}
-                </p>
-              )}
 
               <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                 <button

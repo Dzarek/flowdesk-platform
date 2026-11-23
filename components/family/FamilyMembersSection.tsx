@@ -29,6 +29,10 @@ type Props = {
   onRevokeInvitation: (id: string) => void;
   onAddChild: () => void;
   onInvite: () => void;
+  onActivate: (member: FamilyMember) => void;
+  onPromote: (member: FamilyMember) => void;
+  onDeactivate: (member: FamilyMember) => void;
+  onDemote: (member: FamilyMember) => void;
 };
 
 export default function FamilyMembersSection(props: Props) {
@@ -52,6 +56,10 @@ export default function FamilyMembersSection(props: Props) {
     onRevokeInvitation,
     onAddChild,
     onInvite,
+    onActivate,
+    onPromote,
+    onDeactivate,
+    onDemote,
   } = props;
   return (
     <section className="rounded-3xl border border-[#E4E9E0] bg-[#FEFEFA] p-4 sm:p-6 py-10 xl:py-6 lg:p-7">
@@ -98,6 +106,10 @@ export default function FamilyMembersSection(props: Props) {
               canEdit={canEditMember(member)}
               isFamilyAdmin={isFamilyAdmin}
               onTransfer={onTransfer}
+              onActivate={onActivate}
+              onPromote={onPromote}
+              onDeactivate={onDeactivate}
+              onDemote={onDemote}
             />
           ))}
         </div>

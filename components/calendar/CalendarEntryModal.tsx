@@ -7,7 +7,6 @@ export default function CalendarEntryModal({
   editingEntry,
   selectedDate,
   form,
-  error,
   isSaving,
   onClose,
   onSubmit,
@@ -138,11 +137,6 @@ export default function CalendarEntryModal({
               terminach.
             </p>
           </div>
-          {error && (
-            <p role="alert" className="text-sm font-medium text-red-600">
-              {error}
-            </p>
-          )}
 
           <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
             <button

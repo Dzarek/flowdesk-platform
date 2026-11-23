@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { supabaseStorage, FAMILY_AVATARS_BUCKET } from "@/lib/supabase/storage";
 import { sendFamilyInvitationEmail } from "@/lib/mail";
+import bcrypt from "bcryptjs";
 
 type ActionResult = {
   success: boolean;
@@ -879,6 +880,348 @@ export async function transferFamilyHead(newHeadMemberId: string) {
         error instanceof Error && error.message === "INVALID_TARGET"
           ? "Wybrany członek rodziny nie jest dorosłym lub nie należy do tej rodziny."
           : "Nie udało się przekazać roli głowy rodziny.",
+    };
+  }
+}
+
+export async function activateChildAccount(
+  memberId: string,
+  password: string,
+): Promise<ActionResult> {
+  try {
+    const context = await getFamilyContext();
+
+    if (!context || context.role !== "HEAD") {
+      return {
+        success: false,
+        error: "Tylko głowa rodziny może aktywować konto dziecka.",
+      };
+    }
+
+    if (!memberId || typeof password !== "string") {
+      return {
+        success: false,
+        error: "Nieprawidłowe dane.",
+      };
+    }
+
+    if (password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
+      return {
+        success: false,
+        error: "Hasło musi mieć minimum 8 znaków i maksymalnie 72 bajty.",
+      };
+    }
+
+    const child = await prisma.familyMember.findFirst({
+      where: {
+        id: memberId,
+        familyId: context.familyId,
+        role: "CHILD",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        familyId: true,
+        userId: true,
+      },
+    });
+
+    if (!child) {
+      return {
+        success: false,
+        error: "Nie znaleziono profilu dziecka.",
+      };
+    }
+
+    if (child.userId) {
+      return {
+        success: false,
+        error: "To dziecko ma już aktywne konto.",
+      };
+    }
+
+    if (!child.email) {
+      return {
+        success: false,
+        error: "Najpierw dodaj adres e-mail do profilu dziecka.",
+      };
+    }
+
+    const email = child.email.trim().toLowerCase();
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: "Konto z tym adresem e-mail już istnieje.",
+      };
+    }
+
+    const existingMember = await prisma.familyMember.findFirst({
+      where: {
+        id: { not: child.id },
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingMember) {
+      return {
+        success: false,
+        error: "Ten adres e-mail jest przypisany do innego profilu.",
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          name: child.name,
+          password: hashedPassword,
+          role: "USER",
+          familyId: child.familyId,
+        },
+      });
+
+      const updatedMember = await tx.familyMember.updateMany({
+        where: {
+          id: child.id,
+          familyId: context.familyId,
+          role: "CHILD",
+          userId: null,
+        },
+        data: {
+          userId: user.id,
+          email,
+        },
+      });
+
+      if (updatedMember.count !== 1) {
+        throw new Error("CHILD_ACTIVATION_FAILED");
+      }
+    });
+
+    revalidatePath("/rodzina");
+
+    return { success: true };
+  } catch (error) {
+    console.error("activateChildAccount error:", error);
+
+    return {
+      success: false,
+      error:
+        error instanceof Error && error.message === "CHILD_ACTIVATION_FAILED"
+          ? "Profil dziecka został już aktywowany."
+          : "Nie udało się aktywować konta dziecka.",
+    };
+  }
+}
+
+export async function promoteChildToAdult(
+  memberId: string,
+): Promise<ActionResult> {
+  try {
+    const context = await getFamilyContext();
+
+    if (!context || context.role !== "HEAD") {
+      return {
+        success: false,
+        error: "Tylko głowa rodziny może zmieniać role.",
+      };
+    }
+
+    if (!memberId) {
+      return {
+        success: false,
+        error: "Nieprawidłowy identyfikator członka rodziny.",
+      };
+    }
+
+    const result = await prisma.familyMember.updateMany({
+      where: {
+        id: memberId,
+        familyId: context.familyId,
+        role: "CHILD",
+        userId: { not: null },
+      },
+      data: {
+        role: "ADULT",
+      },
+    });
+
+    if (result.count !== 1) {
+      return {
+        success: false,
+        error:
+          "Nie znaleziono aktywnego profilu dziecka lub jego rola została już zmieniona.",
+      };
+    }
+
+    revalidatePath("/rodzina");
+    revalidatePath("/harmonogram");
+    revalidatePath("/zadania");
+
+    return { success: true };
+  } catch (error) {
+    console.error("promoteChildToAdult error:", error);
+
+    return {
+      success: false,
+      error: "Nie udało się zmienić roli członka rodziny.",
+    };
+  }
+}
+export async function deactivateChildAccount(
+  memberId: string,
+): Promise<ActionResult> {
+  try {
+    const context = await getFamilyContext();
+
+    if (!context || context.role !== "HEAD") {
+      return {
+        success: false,
+        error: "Tylko głowa rodziny może dezaktywować konta.",
+      };
+    }
+
+    if (!memberId) {
+      return {
+        success: false,
+        error: "Nieprawidłowy identyfikator członka rodziny.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const child = await tx.familyMember.findFirst({
+        where: {
+          id: memberId,
+          familyId: context.familyId,
+          role: "CHILD",
+          userId: { not: null },
+        },
+        select: {
+          id: true,
+          userId: true,
+        },
+      });
+
+      if (!child?.userId) {
+        throw new Error("CHILD_ACCOUNT_NOT_FOUND");
+      }
+
+      // Najpierw odłączamy konto od profilu dziecka.
+      const detachedMember = await tx.familyMember.updateMany({
+        where: {
+          id: child.id,
+          familyId: context.familyId,
+          role: "CHILD",
+          userId: child.userId,
+        },
+        data: {
+          userId: null,
+        },
+      });
+
+      if (detachedMember.count !== 1) {
+        throw new Error("CHILD_DEACTIVATION_FAILED");
+      }
+
+      // Następnie usuwamy konto logowania.
+      const deletedUser = await tx.user.deleteMany({
+        where: {
+          id: child.userId,
+          familyId: context.familyId,
+        },
+      });
+
+      if (deletedUser.count !== 1) {
+        throw new Error("CHILD_DEACTIVATION_FAILED");
+      }
+    });
+
+    revalidatePath("/rodzina");
+    revalidatePath("/harmonogram");
+    revalidatePath("/zadania");
+
+    return { success: true };
+  } catch (error) {
+    console.error("deactivateChildAccount error:", error);
+
+    return {
+      success: false,
+      error:
+        error instanceof Error && error.message === "CHILD_ACCOUNT_NOT_FOUND"
+          ? "Nie znaleziono aktywnego konta dziecka."
+          : "Nie udało się dezaktywować konta dziecka.",
+    };
+  }
+}
+export async function demoteAdultToChild(
+  memberId: string,
+): Promise<ActionResult> {
+  try {
+    const context = await getFamilyContext();
+
+    if (!context || context.role !== "HEAD") {
+      return {
+        success: false,
+        error: "Tylko głowa rodziny może zmieniać role.",
+      };
+    }
+
+    if (!memberId) {
+      return {
+        success: false,
+        error: "Nieprawidłowy identyfikator członka rodziny.",
+      };
+    }
+
+    const result = await prisma.familyMember.updateMany({
+      where: {
+        id: memberId,
+        familyId: context.familyId,
+        role: "ADULT",
+        userId: { not: null },
+      },
+      data: {
+        role: "CHILD",
+      },
+    });
+
+    if (result.count !== 1) {
+      return {
+        success: false,
+        error:
+          "Nie znaleziono aktywnego profilu dorosłego lub jego rola została już zmieniona.",
+      };
+    }
+
+    revalidatePath("/rodzina");
+    revalidatePath("/harmonogram");
+    revalidatePath("/zadania");
+
+    return { success: true };
+  } catch (error) {
+    console.error("demoteAdultToChild error:", error);
+
+    return {
+      success: false,
+      error: "Nie udało się zmienić roli członka rodziny.",
     };
   }
 }

@@ -55,6 +55,7 @@ export default async function FamilyPage() {
 
   const initialMembers = members.map((member) => ({
     id: member.id,
+    userId: member.userId,
     name: member.name,
     email: member.email,
     role: member.role,
