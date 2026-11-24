@@ -11,7 +11,9 @@ export default function CalendarHeader({ onAdd, canManageEntries }: Props) {
     <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:px-8 lg:px-10">
       <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]/60 -z-10" />
       <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]/60 -z-10" />
-      <div className="z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] lg:grid-cols-[2fr_1fr_2fr] ">
+      <div
+        className={`z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] ${canManageEntries ? "lg:grid-cols-[2fr_1fr_2fr] " : "lg:grid-cols-2 "} `}
+      >
         <div className="order-1">
           <div className="mb-10 flex items-center  xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
             <MdCalendarMonth size={20} />

@@ -7,7 +7,7 @@ import LandingPage from "@/components/landing/LandingPage";
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
-  if (session) {
+  if (session?.user?.id) {
     redirect("/dashboard");
   }
 

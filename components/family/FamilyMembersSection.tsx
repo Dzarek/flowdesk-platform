@@ -130,6 +130,7 @@ export default function FamilyMembersSection(props: Props) {
         isPending={isPending}
         onRevoke={onRevokeInvitation}
       />
+
       <div className="flex flex-col xl:flex-row items-center mt-10 xl:gap-4">
         <button
           type="button"

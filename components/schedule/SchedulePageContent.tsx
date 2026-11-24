@@ -387,7 +387,7 @@ export default function SchedulePageContent({
               height={330}
               className="h-full w-[40%] xl:w-full object-contain"
             />
-            <div className="h-10 w-[2px] bg-zinc-500"></div>
+            <div className="h-10 w-[2px] bg-zinc-500 xl:hidden"></div>
             <Image
               src="/images/scheduleHeader2.svg"
               alt="schedule"
