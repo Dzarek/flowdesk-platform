@@ -66,23 +66,57 @@ export const authOptions: NextAuthOptions = {
   ],
 
   pages: {
-    signIn: "/logowanie",
+    signIn: "/",
   },
 
   callbacks: {
     async jwt({ token, user }) {
+      // Pierwsze logowanie
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.invalidated = false;
+
+        return token;
       }
+
+      // Brak identyfikatora w tokenie
+      if (typeof token.id !== "string") {
+        token.invalidated = true;
+        return token;
+      }
+
+      // Weryfikacja, czy konto nadal istnieje
+      const dbUser = await prisma.user.findUnique({
+        where: {
+          id: token.id,
+        },
+        select: {
+          id: true,
+          role: true,
+        },
+      });
+
+      if (!dbUser) {
+        token.invalidated = true;
+        return token;
+      }
+
+      token.invalidated = false;
+      token.role = dbUser.role;
 
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as "USER" | "ADMIN";
+        if (token.invalidated || typeof token.id !== "string") {
+          // Sesja istnieje technicznie, ale konto już nie.
+          session.user.id = "";
+        } else {
+          session.user.id = token.id;
+          session.user.role = token.role as "USER" | "ADMIN";
+        }
       }
 
       return session;
