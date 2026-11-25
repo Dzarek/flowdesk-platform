@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   FiSearch,
-  FiPlus,
   FiPhone,
   FiMail,
   FiMapPin,
@@ -20,11 +19,21 @@ import {
   FiMoreHorizontal,
 } from "react-icons/fi";
 import { FaUserDoctor } from "react-icons/fa6";
-
-import { initialContacts } from "@/lib/contacts/mock-data";
-import type { ContactCategory, FamilyContact } from "@/lib/contacts/types";
-import Image from "next/image";
 import { MdAdd, MdContacts } from "react-icons/md";
+import Image from "next/image";
+
+import type {
+  ContactCategory,
+  FamilyContact,
+  ContactInput,
+} from "@/lib/contacts/types";
+import {
+  createContact,
+  updateContact,
+  deleteContact,
+  toggleContactFavorite,
+} from "@/app/(app)/kontakty/actions";
+import toast from "react-hot-toast";
 
 const categories: ContactCategory[] = [
   "Zdrowie",
@@ -81,7 +90,15 @@ const emptyContact: Omit<FamilyContact, "id"> = {
   favorite: false,
 };
 
-export default function ContactsPageContent() {
+interface ContactsPageContentProps {
+  initialContacts: FamilyContact[];
+  canManageContacts: boolean;
+}
+
+export default function ContactsPageContent({
+  initialContacts,
+  canManageContacts,
+}: ContactsPageContentProps) {
   const [contacts, setContacts] = useState<FamilyContact[]>(initialContacts);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<
@@ -95,6 +112,8 @@ export default function ContactsPageContent() {
   const [formData, setFormData] =
     useState<Omit<FamilyContact, "id">>(emptyContact);
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredContacts = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pl");
@@ -130,12 +149,16 @@ export default function ContactsPageContent() {
   }, [contacts, search, activeCategory, favoritesOnly]);
 
   function openAddModal() {
+    if (!canManageContacts) return;
+
     setEditingContact(null);
     setFormData({ ...emptyContact });
     setIsModalOpen(true);
   }
 
   function openEditModal(contact: FamilyContact) {
+    if (!canManageContacts) return;
+
     setEditingContact(contact);
 
     const { id: _id, ...contactData } = contact;
@@ -148,58 +171,116 @@ export default function ContactsPageContent() {
     setEditingContact(null);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const cleanedContact = {
-      ...formData,
+    if (!canManageContacts || isSaving) return;
+
+    setIsSaving(true);
+
+    const cleanedContact: ContactInput = {
       name: formData.name.trim(),
+      category: formData.category,
       phone: formData.phone?.trim() ?? "",
       email: formData.email?.trim() ?? "",
       address: formData.address?.trim() ?? "",
       notes: formData.notes?.trim() ?? "",
+      favorite: formData.favorite,
     };
 
-    if (editingContact) {
-      setContacts((current) =>
-        current.map((contact) =>
-          contact.id === editingContact.id
-            ? { ...cleanedContact, id: editingContact.id }
-            : contact,
-        ),
-      );
-    } else {
-      setContacts((current) => [
-        ...current,
-        {
-          ...cleanedContact,
-          id: crypto.randomUUID(),
-        },
-      ]);
-    }
+    try {
+      const result = editingContact
+        ? await updateContact(editingContact.id, cleanedContact)
+        : await createContact(cleanedContact);
 
-    closeModal();
+      if (!result.success) {
+        toast.error(result.error ?? "Nie udało się zapisać kontaktu.");
+        return;
+      }
+
+      if (editingContact) {
+        setContacts((current) =>
+          current.map((contact) =>
+            contact.id === editingContact.id
+              ? { ...contact, ...cleanedContact }
+              : contact,
+          ),
+        );
+      } else if (result.contact) {
+        setContacts((current) => [...current, result.contact!]);
+      }
+
+      closeModal();
+    } catch {
+      toast.error("Wystąpił nieoczekiwany błąd podczas zapisywania kontaktu.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function toggleFavorite(id: string) {
+  async function toggleFavorite(id: string) {
+    if (!canManageContacts) return;
+
+    const contact = contacts.find((item) => item.id === id);
+    if (!contact) return;
+
+    // Optymistyczna aktualizacja interfejsu.
     setContacts((current) =>
-      current.map((contact) =>
-        contact.id === id
-          ? { ...contact, favorite: !contact.favorite }
-          : contact,
+      current.map((item) =>
+        item.id === id ? { ...item, favorite: !item.favorite } : item,
       ),
     );
+
+    try {
+      const result = await toggleContactFavorite(id);
+
+      if (!result.success) {
+        // Przywrócenie poprzedniego stanu.
+        setContacts((current) =>
+          current.map((item) =>
+            item.id === id ? { ...item, favorite: contact.favorite } : item,
+          ),
+        );
+
+        toast.error(
+          result.error ?? "Nie udało się zmienić ulubionego kontaktu.",
+        );
+      }
+    } catch {
+      setContacts((current) =>
+        current.map((item) =>
+          item.id === id ? { ...item, favorite: contact.favorite } : item,
+        ),
+      );
+
+      toast.error("Wystąpił błąd podczas zmiany ulubionego kontaktu.");
+    }
   }
 
-  function confirmDelete() {
-    if (!deleteContactId) return;
+  async function confirmDelete() {
+    if (!canManageContacts || !deleteContactId || isDeleting) return;
 
-    setContacts((current) =>
-      current.filter((contact) => contact.id !== deleteContactId),
-    );
-    setDeleteContactId(null);
+    setIsDeleting(true);
+
+    try {
+      const result = await deleteContact(deleteContactId);
+
+      if (!result.success) {
+        toast.error(result.error ?? "Nie udało się usunąć kontaktu.");
+        return;
+      }
+
+      setContacts((current) =>
+        current.filter((contact) => contact.id !== deleteContactId),
+      );
+
+      setDeleteContactId(null);
+    } catch {
+      toast.error("Wystąpił błąd podczas usuwania kontaktu.");
+    } finally {
+      setIsDeleting(false);
+    }
   }
-
   const favoriteCount = contacts.filter((contact) => contact.favorite).length;
 
   const inputClass =
@@ -213,7 +294,7 @@ export default function ContactsPageContent() {
         <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]/60 -z-10" />
 
         <div
-          className={`z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] ${true ? "lg:grid-cols-[2fr_1fr_2fr] " : "lg:grid-cols-2 "} `}
+          className={`z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] ${canManageContacts ? "lg:grid-cols-[2fr_1fr_2fr] " : "lg:grid-cols-2 "} `}
         >
           <div className="order-1">
             <div className="mb-10 flex items-center  xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
@@ -242,7 +323,7 @@ export default function ContactsPageContent() {
               </span>
             </div>
           </div>
-          {true && (
+          {canManageContacts && (
             <button
               type="button"
               onClick={openAddModal}
@@ -273,7 +354,7 @@ export default function ContactsPageContent() {
           </h2>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-2 pb-1">
+        <div className="flex flex-wrap justify-center items-center gap-2 pb-1">
           <button
             type="button"
             onClick={() => setActiveCategory("Wszystkie")}
@@ -297,7 +378,7 @@ export default function ContactsPageContent() {
                 onClick={() => setActiveCategory(category)}
                 className={`flex shrink-0 cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition ${
                   isActive
-                    ? "bg-[#287969] text-white"
+                    ? "bg-[var(--greenText)] text-white"
                     : "border border-[#DCE4D9] bg-[#FEFEFA] text-[#64746D] hover:bg-[#F5F6EE]"
                 }`}
               >
@@ -306,6 +387,7 @@ export default function ContactsPageContent() {
               </button>
             );
           })}
+          <div className="h-[20px] w-[1.5px] bg-[var(--greenText)] mx-5 hidden xl:block"></div>
           <button
             type="button"
             onClick={() => setFavoritesOnly((value) => !value)}
@@ -336,15 +418,16 @@ export default function ContactsPageContent() {
             className="w-full rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] py-3.5 pl-11 pr-4 text-sm text-[#263C35] outline-none transition placeholder:text-[#A0AAA2] focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
           />
         </div>
-
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[var(--greenText)] hidden xl:flex px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
-        >
-          <MdAdd size={20} />
-          Dodaj kontakt
-        </button>
+        {canManageContacts && (
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[var(--greenText)] hidden xl:flex px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
+          >
+            <MdAdd size={20} />
+            Dodaj kontakt
+          </button>
+        )}
       </section>
       {/* Lista kontaktów */}
       <section className="space-y-4 px-5 xl:px-0">
@@ -428,26 +511,28 @@ export default function ContactsPageContent() {
                           </h3>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => toggleFavorite(contact.id)}
-                          aria-label={
-                            contact.favorite
-                              ? "Usuń z ulubionych"
-                              : "Dodaj do ulubionych"
-                          }
-                          aria-pressed={contact.favorite}
-                          className={`cursor-pointer rounded-lg p-2 transition hover:bg-[#F5F6EE] ${
-                            contact.favorite
-                              ? "text-[#B28A42]"
-                              : "text-[#B7C0B8]"
-                          }`}
-                        >
-                          <FiStar
-                            size={19}
-                            fill={contact.favorite ? "currentColor" : "none"}
-                          />
-                        </button>
+                        {canManageContacts && (
+                          <button
+                            type="button"
+                            onClick={() => toggleFavorite(contact.id)}
+                            aria-label={
+                              contact.favorite
+                                ? "Usuń z ulubionych"
+                                : "Dodaj do ulubionych"
+                            }
+                            aria-pressed={contact.favorite}
+                            className={`cursor-pointer rounded-lg p-2 transition hover:bg-[#F5F6EE] ${
+                              contact.favorite
+                                ? "text-[#B28A42]"
+                                : "text-[#B7C0B8]"
+                            }`}
+                          >
+                            <FiStar
+                              size={19}
+                              fill={contact.favorite ? "currentColor" : "none"}
+                            />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -537,26 +622,27 @@ export default function ContactsPageContent() {
                       </div>
                     )}
                   </div>
+                  {canManageContacts && (
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(contact)}
+                        className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#64746D] transition hover:bg-[#F5F6EE] hover:text-[#287969]"
+                      >
+                        <FiEdit2 size={15} />
+                        Edytuj
+                      </button>
 
-                  <div className="mt-4 flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openEditModal(contact)}
-                      className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#64746D] transition hover:bg-[#F5F6EE] hover:text-[#287969]"
-                    >
-                      <FiEdit2 size={15} />
-                      Edytuj
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setDeleteContactId(contact.id)}
-                      className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#B46D64] transition hover:bg-[#F8E8E4]"
-                    >
-                      <FiTrash2 size={15} />
-                      Usuń
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteContactId(contact.id)}
+                        className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#B46D64] transition hover:bg-[#F8E8E4]"
+                      >
+                        <FiTrash2 size={15} />
+                        Usuń
+                      </button>
+                    </div>
+                  )}
                 </article>
               );
             })}
@@ -565,7 +651,7 @@ export default function ContactsPageContent() {
       </section>
 
       {/* Formularz dodawania / edycji */}
-      {isModalOpen && (
+      {canManageContacts && isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#192D25]/40 p-4 backdrop-blur-sm"
           onMouseDown={(event) => {
@@ -774,9 +860,14 @@ export default function ContactsPageContent() {
 
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
+                  disabled={isSaving}
+                  className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
                 >
-                  {editingContact ? "Zapisz zmiany" : "Dodaj kontakt"}
+                  {isSaving
+                    ? "Zapisywanie..."
+                    : editingContact
+                      ? "Zapisz zmiany"
+                      : "Dodaj kontakt"}
                 </button>
               </div>
             </form>
@@ -785,7 +876,7 @@ export default function ContactsPageContent() {
       )}
 
       {/* Potwierdzenie usunięcia */}
-      {deleteContactId && (
+      {canManageContacts && deleteContactId && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#192D25]/40 p-4 backdrop-blur-sm">
           <div
             role="alertdialog"
@@ -821,9 +912,10 @@ export default function ContactsPageContent() {
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 cursor-pointer rounded-xl bg-[#B46D64] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#99564E]"
+                disabled={isDeleting}
+                className="flex-1 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 rounded-xl bg-[#B46D64] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#99564E]"
               >
-                Usuń kontakt
+                {isDeleting ? "Usuwanie..." : "Usuń kontakt"}
               </button>
             </div>
           </div>

@@ -40,6 +40,15 @@ enum ScheduleEntryType {
   OTHER
 }
 
+enum ContactCategory {
+  HEALTH
+  AUTOMOTIVE
+  HOME
+  SCHOOL
+  PETS
+  OTHER
+}
+
 model User {
   id       String   @id @default(cuid())
   email    String   @unique
@@ -81,6 +90,7 @@ model Family {
   tasks           Task[]
   calendarEntries CalendarEntry[]
   scheduleEntries ScheduleEntry[]
+  contacts        FamilyContact[]
 }
 
 model FamilyMember {
@@ -243,4 +253,23 @@ model ScheduleNote {
 
   @@unique([entryId, date])
   @@index([date])
+}
+
+model FamilyContact {
+  id       String          @id @default(cuid())
+  name     String
+  category ContactCategory @default(OTHER)
+  phone    String?
+  email    String?
+  address  String?
+  notes    String?
+  favorite Boolean         @default(false)
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId])
 }

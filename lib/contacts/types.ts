@@ -10,9 +10,11 @@ export interface FamilyContact {
   id: string;
   name: string;
   category: ContactCategory;
-  phone?: string;
-  email?: string;
-  address?: string;
-  notes?: string;
+  phone: string;
+  email: string;
+  address: string;
+  notes: string;
   favorite: boolean;
 }
+
+export type ContactInput = Omit<FamilyContact, "id">;
