@@ -24,7 +24,7 @@ import { FaUserDoctor } from "react-icons/fa6";
 import { initialContacts } from "@/lib/contacts/mock-data";
 import type { ContactCategory, FamilyContact } from "@/lib/contacts/types";
 import Image from "next/image";
-import { MdContacts } from "react-icons/md";
+import { MdAdd, MdContacts } from "react-icons/md";
 
 const categories: ContactCategory[] = [
   "Zdrowie",
@@ -208,22 +208,24 @@ export default function ContactsPageContent() {
   return (
     <div className="space-y-6 pb-8">
       {/* Nagłówek */}
-      <section className="relative overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:p-8 lg:p-10">
-        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
-        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
+      <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:px-8 lg:px-10">
+        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]/60 -z-10" />
+        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]/60 -z-10" />
 
-        <div className="relative flex h-[230px] flex-col justify-center gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative z-10 max-w-xl">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
-              <MdContacts size={21} />
+        <div
+          className={`z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] ${true ? "lg:grid-cols-[2fr_1fr_2fr] " : "lg:grid-cols-2 "} `}
+        >
+          <div className="order-1">
+            <div className="mb-10 flex items-center  xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
+              <MdContacts size={20} />
               <span>Znajomi i Specjaliści</span>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-[#263C35] sm:text-4xl">
+            <h1 className="text-2xl uppercase text-center xl:text-left font-bold xl:font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl">
               Ważne kontakty
             </h1>
 
-            <p className="mt-3 max-w-md text-sm leading-6 text-[#839087] sm:text-base">
+            <p className="mt-4 text-center xl:text-left max-w-lg mx-auto xl:mx-0 text-base leading-7 text-[#647069]">
               Wszystkie ważne numery, adresy i informacje dla Twojej rodziny w
               jednym miejscu.
             </p>
@@ -240,71 +242,44 @@ export default function ContactsPageContent() {
               </span>
             </div>
           </div>
-
-          <Image
-            src="/images/contactsHeader.svg"
-            alt="Energia i instalacje domowe"
-            width={400}
-            height={400}
-            priority
-            className=" h-full  object-contain "
-          />
+          {true && (
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="w-[180px] order-3 xl:order-2 mx-auto flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[var(--greenText)]/90"
+            >
+              <MdAdd size={22} />
+              Dodaj kontakt
+            </button>
+          )}
+          <div className="relative h-[90%] lg:block ml-auto order-2 xl:order-3">
+            <Image
+              src="/images/contactsHeader.svg"
+              alt="Energia i instalacje domowe"
+              width={400}
+              height={400}
+              priority
+              className="h-full w-4/5 xl:w-full mx-auto object-contain"
+            />
+          </div>
         </div>
-      </section>
-
-      {/* Wyszukiwarka i dodawanie */}
-      <section className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <FiSearch
-            size={19}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#839087]"
-          />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Szukaj nazwy, osoby, telefonu lub adresu..."
-            aria-label="Szukaj kontaktów"
-            className="w-full rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] py-3.5 pl-11 pr-4 text-sm text-[#263C35] outline-none transition placeholder:text-[#A0AAA2] focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#287969] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#19483D]"
-        >
-          <FiPlus size={19} />
-          Dodaj kontakt
-        </button>
       </section>
 
       {/* Kategorie */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-[#263C35]">Kategorie</h2>
-
-          <button
-            type="button"
-            onClick={() => setFavoritesOnly((value) => !value)}
-            aria-pressed={favoritesOnly}
-            className={`flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
-              favoritesOnly
-                ? "bg-[#F5EBDD] text-[#8A6840]"
-                : "bg-[#FEFEFA] text-[#839087] hover:bg-[#F5F6EE]"
-            }`}
-          >
-            <FiStar size={16} />
-            Ulubione
-          </button>
+      <section className="space-y-3 my-10 px-5 xl:px-10">
+        <div className="flex items-center justify-center gap-3">
+          <h2 className="text-lg font-semibold uppercase text-[#263C35] text-center">
+            Kategorie
+          </h2>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex flex-wrap justify-center gap-2 pb-1">
           <button
             type="button"
             onClick={() => setActiveCategory("Wszystkie")}
             className={`shrink-0 cursor-pointer rounded-xl px-4 py-2.5 text-sm font-medium transition ${
               activeCategory === "Wszystkie"
-                ? "bg-[#287969] text-white"
+                ? "bg-[var(--greenText)] text-white"
                 : "border border-[#DCE4D9] bg-[#FEFEFA] text-[#64746D] hover:bg-[#F5F6EE]"
             }`}
           >
@@ -331,11 +306,48 @@ export default function ContactsPageContent() {
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setFavoritesOnly((value) => !value)}
+            aria-pressed={favoritesOnly}
+            className={`flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
+              favoritesOnly
+                ? "bg-[#F5EBDD] text-[#8A6840]"
+                : "bg-[#FEFEFA] text-[#839087] hover:bg-[#F5F6EE]"
+            }`}
+          >
+            <FiStar size={16} />
+            Ulubione
+          </button>
         </div>
       </section>
+      {/* Wyszukiwarka i dodawanie */}
+      <section className="flex flex-col gap-3 sm:flex-row px-5 xl:px-0">
+        <div className="relative flex-1">
+          <FiSearch
+            size={19}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#839087]"
+          />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Szukaj nazwy, osoby, telefonu lub adresu..."
+            aria-label="Szukaj kontaktów"
+            className="w-full rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] py-3.5 pl-11 pr-4 text-sm text-[#263C35] outline-none transition placeholder:text-[#A0AAA2] focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
+          />
+        </div>
 
+        <button
+          type="button"
+          onClick={openAddModal}
+          className="cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[var(--greenText)] hidden xl:flex px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
+        >
+          <MdAdd size={20} />
+          Dodaj kontakt
+        </button>
+      </section>
       {/* Lista kontaktów */}
-      <section className="space-y-4">
+      <section className="space-y-4 px-5 xl:px-0">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[#263C35]">
             {favoritesOnly
@@ -762,7 +774,7 @@ export default function ContactsPageContent() {
 
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-xl bg-[#287969] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#19483D]"
+                  className="cursor-pointer rounded-xl bg-[var(--greenText)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
                 >
                   {editingContact ? "Zapisz zmiany" : "Dodaj kontakt"}
                 </button>

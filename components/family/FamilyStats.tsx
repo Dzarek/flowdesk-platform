@@ -21,11 +21,11 @@ function StatCard({
   iconColor,
 }: StatCardProps) {
   return (
-    <div className="flex min-w-0 items-center justify-center gap-2 xl:gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-3 xl:p-4">
+    <div className="flex min-w-0 items-center justify-center gap-2 xl:gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-3 min-w-[1280px]:p-4">
       <div
-        className={`flex h-10 w-10 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-full ${iconBg} ${iconColor}`}
+        className={`flex h-10 w-10 min-w-[1280px]:h-12 min-w-[1280px]:w-12 shrink-0 items-center justify-center rounded-full ${iconBg} ${iconColor}`}
       >
-        <Icon className="size-5 xl:size-6" />
+        <Icon className="size-5 min-w-[1280px]:size-6" />
       </div>
       <p className="text-xl xl:text-xl font-extrabold leading-none text-[#263C35]">
         {value}

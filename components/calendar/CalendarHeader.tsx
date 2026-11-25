@@ -46,7 +46,7 @@ export default function CalendarHeader({ onAdd, canManageEntries }: Props) {
             alt="Ilustracja kalendarza"
             width={400}
             height={400}
-            className="h-full w-4/5 mx-auto object-contain"
+            className="h-full w-4/5 xl:w-9/10 mx-auto object-contain"
           />
         </div>
       </div>

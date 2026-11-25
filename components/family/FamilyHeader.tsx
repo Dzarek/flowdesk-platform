@@ -16,7 +16,7 @@ export default function FamilyHeader({
   childrenF,
 }: Props) {
   return (
-    <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:p-8 lg:p-10">
+    <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:px-8 lg:px-10">
       <div className="z-10 grid items-center gap-5 px-2 xl:px-5 lg:min-h-[330px] lg:grid-cols-2 ">
         <div className="">
           <div className="mb-10 flex items-center ml-2 xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
@@ -42,14 +42,13 @@ export default function FamilyHeader({
           </div>
           <FamilyStats total={total} adults={adults} childrenF={childrenF} />
         </div>
-        <div className="relative hidden h-full lg:block">
+        <div className="relative hidden h-[90%] lg:block">
           <Image
             src="/images/family-illustration.png"
             alt="Ilustracja rodziny spędzającej wspólnie czas"
-            fill
-            priority
-            sizes="(min-width: 1024px) 50vw, 0px"
-            className="object-cover"
+            width={400}
+            height={400}
+            className="h-full w-full mx-auto object-contain"
           />
         </div>
       </div>
