@@ -49,6 +49,11 @@ enum ContactCategory {
   OTHER
 }
 
+enum TravelStatus {
+  PLANNED
+  COMPLETED
+}
+
 model User {
   id       String   @id @default(cuid())
   email    String   @unique
@@ -91,6 +96,7 @@ model Family {
   calendarEntries CalendarEntry[]
   scheduleEntries ScheduleEntry[]
   contacts        FamilyContact[]
+  trips           FamilyTrip[]
 }
 
 model FamilyMember {
@@ -272,4 +278,57 @@ model FamilyContact {
   updatedAt DateTime @updatedAt
 
   @@index([familyId])
+}
+
+model FamilyTrip {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  startDate   DateTime     @db.Date
+  endDate     DateTime     @db.Date
+  status      TravelStatus @default(PLANNED)
+  coverImage  String?      @db.Text
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  places    TripPlace[]
+  checklist TripChecklistItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId])
+  @@index([familyId, startDate])
+}
+
+model TripPlace {
+  id        String @id @default(cuid())
+  name      String
+  country   String
+  latitude  Float
+  longitude Float
+  position  Int    @default(0)
+
+  tripId String
+  trip   FamilyTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([tripId])
+}
+
+model TripChecklistItem {
+  id        String  @id @default(cuid())
+  title     String
+  completed Boolean @default(false)
+  position  Int     @default(0)
+
+  tripId String
+  trip   FamilyTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
 }

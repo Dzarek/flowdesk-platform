@@ -17,3 +17,4 @@ export const supabaseStorage = createClient(supabaseUrl, supabaseSecretKey, {
 });
 
 export const FAMILY_AVATARS_BUCKET = "family-avatars";
+export const FAMILY_TRIPS_BUCKET = "family-trips";

@@ -16,11 +16,19 @@ import {
   MdSearch,
   MdTravelExplore,
 } from "react-icons/md";
-import { mockTrips } from "@/lib/travel/mock-data";
-import type { Trip, TravelStatus, TripChecklistItem } from "@/lib/travel/types";
+import type { Trip, TravelStatus } from "@/lib/travel/types";
 import { FaMapPin } from "react-icons/fa";
 import Image from "next/image";
 import { FaPersonWalkingLuggage } from "react-icons/fa6";
+import {
+  createTrip,
+  updateTrip,
+  deleteTrip as deleteTripAction,
+  addTripChecklistItem,
+  toggleTripChecklistItem,
+  deleteTripChecklistItem,
+} from "@/app/(app)/podroze/actions";
+import toast from "react-hot-toast";
 
 const TravelMap = dynamic(() => import("./TravelMap"), {
   ssr: false,
@@ -38,6 +46,7 @@ type FormState = {
   endDate: string;
   status: TravelStatus;
   coverImage: string | null;
+  coverFile: File | null;
   placesText: string;
 };
 
@@ -58,6 +67,7 @@ const initialForm: FormState = {
   status: "PLANNED",
   coverImage: null,
   placesText: "",
+  coverFile: null,
 };
 
 function formatDate(date: string) {
@@ -72,23 +82,34 @@ function formatDate(date: string) {
 function getTripPlaces(trip: Trip) {
   return trip.places.map((place) => place.name).join(", ");
 }
+type TravelPageContentProps = {
+  initialTrips: Trip[];
+  canManageTrips: boolean;
+};
 
-export default function TravelPageContent() {
-  const [trips, setTrips] = useState<Trip[]>(mockTrips);
+export default function TravelPageContent({
+  initialTrips,
+  canManageTrips,
+}: TravelPageContentProps) {
+  const [trips, setTrips] = useState<Trip[]>(initialTrips);
   const [scope, setScope] = useState<"WORLD" | "POLAND">("WORLD");
   const [mapFilter, setMapFilter] = useState<"ALL" | TravelStatus>("ALL");
   const [listFilter, setListFilter] = useState<"ALL" | TravelStatus>("ALL");
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formError, setFormError] = useState("");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [newChecklistItem, setNewChecklistItem] = useState("");
 
   const [placeQuery, setPlaceQuery] = useState("");
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
-  const [placeSearchError, setPlaceSearchError] = useState("");
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
+  const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
+
+  const [checklistLoading, setChecklistLoading] = useState<string | null>(null);
 
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? null;
 
@@ -123,20 +144,17 @@ export default function TravelPageContent() {
   function openCreate() {
     setPlaceQuery("");
     setPlaceResults([]);
-    setPlaceSearchError("");
     setEditingId(null);
     setForm({
       ...initialForm,
       startDate: new Date().toISOString().slice(0, 10),
     });
-    setFormError("");
   }
 
   function openEdit(trip: Trip) {
     setSelectedTripId(null);
     setPlaceQuery("");
     setPlaceResults([]);
-    setPlaceSearchError("");
     setEditingId(trip.id);
     setForm({
       title: trip.title,
@@ -145,6 +163,7 @@ export default function TravelPageContent() {
       endDate: trip.endDate,
       status: trip.status,
       coverImage: trip.coverImage,
+      coverFile: null,
       placesText: trip.places
         .map(
           (place) =>
@@ -152,153 +171,268 @@ export default function TravelPageContent() {
         )
         .join("\n"),
     });
-    setFormError("");
   }
 
-  function saveTrip() {
-    if (!form) return;
+  async function saveTrip() {
+    if (!form || isSaving) return;
 
     if (!form.title.trim()) {
-      setFormError("Podaj nazwę podróży.");
+      toast.error("Podaj nazwę podróży.");
       return;
     }
 
     if (!form.startDate || !form.endDate || form.endDate < form.startDate) {
-      setFormError("Sprawdź daty podróży.");
+      toast.error("Sprawdź daty podróży.");
       return;
     }
 
-    const places = form.placesText
+    const lines = form.placesText
       .split("\n")
       .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line, index) => {
-        const [name, country, coordinates] = line
-          .split("|")
-          .map((part) => part.trim());
+      .filter(Boolean);
 
-        const [latitude, longitude] = (coordinates ?? "")
-          .split(",")
-          .map((value) => Number(value.trim()));
+    const places = [];
 
-        return {
-          id: `place-${Date.now()}-${index}`,
-          name: name ?? "",
-          country: country || "Polska",
-          latitude: Number.isFinite(latitude) ? latitude : 52,
-          longitude: Number.isFinite(longitude) ? longitude : 19,
-        };
-      })
-      .filter((place) => place.name);
+    for (const [index, line] of lines.entries()) {
+      const [name, country, coordinates] = line
+        .split("|")
+        .map((part) => part.trim());
 
-    const updatedTrip: Trip = {
-      id: editingId ?? `trip-${Date.now()}`,
-      title: form.title.trim(),
-      description: form.description.trim(),
-      startDate: form.startDate,
-      endDate: form.endDate,
-      status: form.status,
-      coverImage: form.coverImage,
-      places,
-      checklist: trips.find((trip) => trip.id === editingId)?.checklist ?? [],
-    };
+      const [latitude, longitude] = (coordinates ?? "")
+        .split(",")
+        .map((value) => Number(value.trim()));
 
-    setTrips((previous) =>
-      editingId
-        ? previous.map((trip) => (trip.id === editingId ? updatedTrip : trip))
-        : [updatedTrip, ...previous],
-    );
+      if (!name || !country || !coordinates) {
+        toast.error(`Nieprawidłowy format miejsca w wierszu ${index + 1}.`);
+        return;
+      }
 
-    setSelectedTripId(updatedTrip.id);
-    setForm(null);
-    setEditingId(null);
-    setFormError("");
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        toast.error(`Nieprawidłowe współrzędne miejsca: ${name}.`);
+        return;
+      }
+
+      places.push({
+        name,
+        country,
+        latitude,
+        longitude,
+      });
+    }
+
+    const formData = new FormData();
+
+    formData.append("title", form.title.trim());
+    formData.append("description", form.description.trim());
+    formData.append("startDate", form.startDate);
+    formData.append("endDate", form.endDate);
+    formData.append("status", form.status);
+    formData.append("places", JSON.stringify(places));
+
+    if (form.coverFile) {
+      formData.append("coverImage", form.coverFile);
+    }
+
+    setIsSaving(true);
+
+    try {
+      const result = editingId
+        ? await updateTrip(editingId, formData)
+        : await createTrip(formData);
+
+      if (!result.success || !result.data) {
+        toast.error(result.message);
+        return;
+      }
+
+      const savedTrip = result.data;
+
+      setTrips((previous) =>
+        editingId
+          ? previous.map((trip) => (trip.id === editingId ? savedTrip : trip))
+          : [savedTrip, ...previous],
+      );
+
+      setSelectedTripId(savedTrip.id);
+      setForm(null);
+      setEditingId(null);
+    } catch (error) {
+      console.error("Save trip error:", error);
+      toast.error("Wystąpił błąd podczas zapisywania podróży.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function deleteTrip(tripId: string) {
-    setTrips((previous) => previous.filter((trip) => trip.id !== tripId));
-    setSelectedTripId((current) => (current === tripId ? null : current));
+  async function deleteTrip(tripId: string) {
+    if (!canManageTrips || deletingTripId) return;
+
+    setDeletingTripId(tripId);
+
+    try {
+      const result = await deleteTripAction(tripId);
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      setTrips((previous) => previous.filter((trip) => trip.id !== tripId));
+
+      setSelectedTripId((current) => (current === tripId ? null : current));
+
+      setTripToDelete(null);
+    } catch (error) {
+      console.error("Delete trip error:", error);
+      toast.error("Nie udało się usunąć podróży. Spróbuj ponownie.");
+    } finally {
+      setDeletingTripId(null);
+    }
   }
 
   function handleImage(file?: File) {
     if (!file || !form) return;
 
-    if (!file.type.startsWith("image/")) {
-      setFormError("Wybierz plik graficzny.");
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Dozwolone formaty zdjęć: JPG, PNG i WebP.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setFormError("Zdjęcie może mieć maksymalnie 5 MB.");
+      toast.error("Zdjęcie może mieć maksymalnie 5 MB.");
       return;
     }
 
-    setFormError("");
-    const reader = new FileReader();
+    const previewUrl = URL.createObjectURL(file);
 
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setForm((current) =>
-          current
-            ? { ...current, coverImage: reader.result as string }
-            : current,
-        );
-      }
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  function toggleChecklistItem(tripId: string, itemId: string) {
-    setTrips((previous) =>
-      previous.map((trip) =>
-        trip.id !== tripId
-          ? trip
-          : {
-              ...trip,
-              checklist: trip.checklist.map((item) =>
-                item.id === itemId
-                  ? { ...item, completed: !item.completed }
-                  : item,
-              ),
-            },
-      ),
+    setForm((current) =>
+      current
+        ? {
+            ...current,
+            coverImage: previewUrl,
+            coverFile: file,
+          }
+        : current,
     );
   }
 
-  function addChecklistItem(tripId: string) {
+  async function toggleChecklistItem(tripId: string, itemId: string) {
+    if (!canManageTrips || checklistLoading) return;
+
+    const trip = trips.find((item) => item.id === tripId);
+    const checklistItem = trip?.checklist.find((item) => item.id === itemId);
+
+    if (!checklistItem) return;
+
+    setChecklistLoading(itemId);
+
+    try {
+      const result = await toggleTripChecklistItem(
+        tripId,
+        itemId,
+        !checklistItem.completed,
+      );
+
+      if (!result.success || !result.data) {
+        toast.error(result.message);
+        return;
+      }
+
+      setTrips((previous) =>
+        previous.map((trip) =>
+          trip.id !== tripId
+            ? trip
+            : {
+                ...trip,
+                checklist: trip.checklist.map((item) =>
+                  item.id === itemId ? result.data! : item,
+                ),
+              },
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Nie udało się zaktualizować checklisty.");
+    } finally {
+      setChecklistLoading(null);
+    }
+  }
+
+  async function addChecklistItem(tripId: string) {
+    if (!canManageTrips || checklistLoading) return;
+
     const title = newChecklistItem.trim();
 
     if (!title) return;
 
-    const item: TripChecklistItem = {
-      id: crypto.randomUUID(),
-      title,
-      completed: false,
-    };
+    setChecklistLoading("add");
 
-    setTrips((previous) =>
-      previous.map((trip) =>
-        trip.id === tripId
-          ? { ...trip, checklist: [...trip.checklist, item] }
-          : trip,
-      ),
-    );
+    try {
+      const result = await addTripChecklistItem(tripId, title);
 
-    setNewChecklistItem("");
+      if (!result.success || !result.data) {
+        toast.error(result.message);
+        return;
+      }
+
+      setTrips((previous) =>
+        previous.map((trip) =>
+          trip.id === tripId
+            ? {
+                ...trip,
+                checklist: [...trip.checklist, result.data!],
+              }
+            : trip,
+        ),
+      );
+
+      setNewChecklistItem("");
+    } catch (error) {
+      console.error(error);
+      toast.error("Nie udało się dodać pozycji.");
+    } finally {
+      setChecklistLoading(null);
+    }
   }
 
-  function deleteChecklistItem(tripId: string, itemId: string) {
-    setTrips((previous) =>
-      previous.map((trip) =>
-        trip.id !== tripId
-          ? trip
-          : {
-              ...trip,
-              checklist: trip.checklist.filter((item) => item.id !== itemId),
-            },
-      ),
-    );
+  async function deleteChecklistItem(tripId: string, itemId: string) {
+    if (!canManageTrips || checklistLoading) return;
+
+    setChecklistLoading(itemId);
+
+    try {
+      const result = await deleteTripChecklistItem(tripId, itemId);
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      setTrips((previous) =>
+        previous.map((trip) =>
+          trip.id === tripId
+            ? {
+                ...trip,
+                checklist: trip.checklist.filter((item) => item.id !== itemId),
+              }
+            : trip,
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Nie udało się usunąć pozycji.");
+    } finally {
+      setChecklistLoading(null);
+    }
   }
 
   async function searchPlaces(event: React.FormEvent<HTMLFormElement>) {
@@ -307,13 +441,12 @@ export default function TravelPageContent() {
     const query = placeQuery.trim();
 
     if (query.length < 2) {
-      setPlaceSearchError("Wpisz przynajmniej 2 znaki.");
+      toast.error("Wpisz przynajmniej 2 znaki.");
       setPlaceResults([]);
       return;
     }
 
     setPlaceSearchLoading(true);
-    setPlaceSearchError("");
     setPlaceResults([]);
 
     try {
@@ -330,12 +463,10 @@ export default function TravelPageContent() {
       setPlaceResults(data as PlaceSearchResult[]);
 
       if (data.length === 0) {
-        setPlaceSearchError(
-          "Nie znaleziono miejsca. Spróbuj podać nazwę i kraj.",
-        );
+        toast.error("Nie znaleziono miejsca. Spróbuj podać nazwę i kraj.");
       }
     } catch (error) {
-      setPlaceSearchError(
+      toast.error(
         error instanceof Error ? error.message : "Wystąpił błąd wyszukiwania.",
       );
     } finally {
@@ -367,7 +498,7 @@ export default function TravelPageContent() {
     });
 
     if (alreadyAdded) {
-      setPlaceSearchError("To miejsce jest już dodane do tej podróży.");
+      toast.error("To miejsce jest już dodane do tej podróży.");
       return;
     }
 
@@ -378,76 +509,92 @@ export default function TravelPageContent() {
 
     setPlaceQuery("");
     setPlaceResults([]);
-    setPlaceSearchError("");
   }
 
   return (
     <div className="space-y-6 pb-8 text-[#263C35]">
       {/* Nagłówek */}
-      <section className="relative overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:p-8 lg:p-10">
-        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]" />
-        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]" />
+      <section className="relative isolate overflow-hidden rounded-3xl bg-[#F5F6EE] p-6 sm:px-8 lg:px-10">
+        <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-[#E2EBD9]/60 -z-10" />
+        <div className="pointer-events-none absolute -bottom-24 right-36 h-48 w-48 rounded-full bg-[#E2F0EB]/60 -z-10" />
 
-        <div className="h-[230px] relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-10">
+        <div className="z-10 flex flex-col xl:grid items-center gap-10 px-2 xl:px-5 lg:min-h-[250px] lg:grid-cols-[1fr_2fr_1fr] ">
           <Image
             src="/images/travelHeader2.svg"
             alt="tasks"
             width={300}
             height={300}
-            className="h-full object-contain"
+            className="h-full hidden xl:block object-contain rotate-y-180 order-1"
           />
-          <div className="max-w-2xl absolute top-1/2 left-1/2 -translate-1/2 flex flex-col items-center">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#287969]">
-              <MdLuggage size={21} />
-              <span>RODZINNE WYJAZDY</span>
+          <div className="max-w-2xl order-2 flex flex-col items-center text-center">
+            <div className="mb-10 flex items-center  xl:ml-0 gap-2 text-sm font-semibold text-[var(--greenTextLight)]">
+              <MdLuggage size={20} />
+              <span>Rodzinne wyjazdy</span>
             </div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#19483D] sm:text-5xl">
+            <h1 className="text-2xl uppercase text-center xl:text-left font-bold xl:font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl">
               Nasze podróże
             </h1>
 
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#718078]">
+            <p className="mt-4 text-center xl:text-left max-w-lg mx-auto xl:mx-0 text-base leading-7 text-[#647069]">
               Planuj wyjazdy i zachowuj rodzinne wspomnienia.
             </p>
-            <button
-              type="button"
-              onClick={openCreate}
-              className="mt-10 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D]"
-            >
-              <MdAdd size={21} />
-              Dodaj podróż
-            </button>
+            {canManageTrips && (
+              <button
+                type="button"
+                onClick={openCreate}
+                className="w-[180px] mt-10 mx-auto flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[var(--greenText)]/90"
+              >
+                <MdAdd size={20} />
+                Dodaj podróż
+              </button>
+            )}
           </div>
-
-          <Image
-            src="/images/travelHeader.svg"
-            alt="tasks"
-            width={300}
-            height={300}
-            className="h-full object-contain"
-          />
+          <div className="flex items-center justify-between w-full order-3">
+            <Image
+              src="/images/travelHeader.svg"
+              alt="tasks"
+              width={300}
+              height={300}
+              className="h-full w-[40%] xl:w-full object-contain"
+            />
+            <div className="h-10 w-[2px] bg-zinc-500 xl:hidden"></div>
+            <Image
+              src="/images/travelHeader2.svg"
+              alt="schedule"
+              width={300}
+              height={300}
+              className="h-full w-[40%] xl:hidden object-contain rotate-y-180"
+            />
+          </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 mx-10">
-        <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-4">
-          <FaPersonWalkingLuggage size={50} className="text-[#287969]" />
-          <p className="text-lg text-[#839087]">Wszystkie podróże:</p>
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 mx-10 my-10">
+        <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-3 xl:gap-4">
+          <FaPersonWalkingLuggage className="text-[var(--greenText)] text-3xl md:text-4xl min-w-[1400px]:text-5xl" />
+          <p className="text-sm md:text-base min-w-[1400px]:text-lg text-[#839087]">
+            Wszystkie podróże:
+          </p>
           <p className="text-2xl font-extrabold">{trips.length}</p>
         </div>
-        <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-4">
-          <MdPublic size={50} className="text-[#287969]" />
-          <p className="text-lg text-[#839087]">Odwiedzone kraje</p>
+        <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-3 xl:gap-4">
+          <MdPublic className="text-[var(--greenText)] text-3xl md:text-4xl min-w-[1400px]:text-5xl" />
+          <p className="text-sm md:text-basemin-w-[1400px]:text-lg text-[#839087]">
+            Odwiedzone kraje:
+          </p>
           <p className="text-2xl font-extrabold">{visitedCountries.size}</p>
         </div>
-        <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-4">
-          <MdLocationPin size={50} className="text-[#287969]" />
-          <p className="text-lg text-[#839087]">Odwiedzone miejsca</p>
+        <div className="rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] p-4 flex items-center justify-center gap-3 xl:gap-4">
+          <MdLocationPin className="text-[var(--greenText)] text-3xl md:text-4xl min-w-[1400px]:text-5xl" />
+          <p className="text-sm md:text-base min-w-[1400px]:text-lg text-[#839087]">
+            Odwiedzone miejsca:
+          </p>
           <p className="text-2xl font-extrabold">{visitedPlaces.size}</p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#DCE4D9] bg-[var(--greenBg)] text-white p-4 sm:p-5 mx-20">
+      <section className="rounded-2xl border border-[#DCE4D9] bg-[var(--greenBg)] text-white p-4 sm:p-5 xl:mx-20">
         <div className="mt-2">
           <h2 className="text-xl font-semibold uppercase text-center">
             Mapa naszych podróży
@@ -456,7 +603,7 @@ export default function TravelPageContent() {
             Kliknij pinezkę, aby zobaczyć miejsce i powiązany wyjazd.
           </p>
         </div>
-        <div className="flex -mt-12 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex mt-10 xl:-mt-12 flex-col gap-3 sm:flex-row items-center sm:justify-end">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -485,8 +632,10 @@ export default function TravelPageContent() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="mr-1 text-sm text-[#b5c8bb]">Pokaż:</span>
+        <div className="mt-10 flex flex-wrap items-center justify-center xl:justify-start gap-2">
+          <span className="mr-1 text-sm text-[#b5c8bb] text-center xl:text-left w-full xl:w-auto">
+            Pokaż:
+          </span>
           {(
             [
               ["ALL", "Wszystkie"],
@@ -507,7 +656,7 @@ export default function TravelPageContent() {
               {label}
             </button>
           ))}
-          <span className="ml-auto flex items-center gap-3 text-sm text-[#b5c8bb]">
+          <span className="ml-auto flex items-center gap-3 text-sm text-[#b5c8bb] mt-5 xl:mt-0">
             <span className="flex items-center gap-1">
               <span className="h-2.5 w-2.5 rounded-full bg-[#287969]" />
               Odwiedzone
@@ -622,24 +771,27 @@ export default function TravelPageContent() {
                           "Nie dodano jeszcze miejsc."}
                       </span>
                     </div>
+                    {canManageTrips && (
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(selectedTrip)}
+                          className="cursor-pointer rounded-xl bg-[var(--greenText)] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#19483D]"
+                        >
+                          Edytuj podróż
+                        </button>
 
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(selectedTrip)}
-                        className="cursor-pointer rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#19483D]"
-                      >
-                        Edytuj podróż
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => deleteTrip(selectedTrip.id)}
-                        className="cursor-pointer rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-50"
-                      >
-                        Usuń
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTripToDelete(selectedTrip);
+                          }}
+                          className="cursor-pointer rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-50"
+                        >
+                          Usuń
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -673,7 +825,7 @@ export default function TravelPageContent() {
 
                       <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#DCE4D9]">
                         <div
-                          className="h-full rounded-full bg-[#287969] transition-all duration-300"
+                          className="h-full rounded-full bg-[var(--greenText)] transition-all duration-300"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -693,6 +845,9 @@ export default function TravelPageContent() {
                             <input
                               type="checkbox"
                               checked={item.completed}
+                              disabled={
+                                !canManageTrips || checklistLoading === item.id
+                              }
                               onChange={() =>
                                 toggleChecklistItem(selectedTrip.id, item.id)
                               }
@@ -710,61 +865,57 @@ export default function TravelPageContent() {
                               {item.title}
                             </span>
 
-                            <button
-                              type="button"
-                              onClick={() =>
-                                deleteChecklistItem(selectedTrip.id, item.id)
-                              }
-                              aria-label={`Usuń: ${item.title}`}
-                              className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600"
-                            >
-                              <MdDeleteOutline size={19} />
-                            </button>
+                            {canManageTrips && (
+                              <button
+                                type="button"
+                                disabled={checklistLoading === item.id}
+                                onClick={() =>
+                                  deleteChecklistItem(selectedTrip.id, item.id)
+                                }
+                                aria-label={`Usuń: ${item.title}`}
+                                className="cursor-pointer rounded-lg p-2 text-[#839087] transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <MdDeleteOutline size={19} />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
-
-                      <form
-                        className="mt-4 flex flex-col gap-2 sm:flex-row"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          addChecklistItem(selectedTrip.id);
-                        }}
-                      >
-                        <input
-                          value={newChecklistItem}
-                          onChange={(event) =>
-                            setNewChecklistItem(event.target.value)
-                          }
-                          placeholder="Np. kupić krem z filtrem"
-                          aria-label="Nowa rzecz do przygotowania"
-                          className="min-w-0 flex-1 rounded-xl border border-[#DCE4D9] bg-white px-3 py-3 text-sm outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
-                        />
-
-                        <button
-                          type="submit"
-                          disabled={!newChecklistItem.trim()}
-                          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#287969] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-50"
+                      {canManageTrips && (
+                        <form
+                          className="mt-4 flex flex-col gap-2 sm:flex-row"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            addChecklistItem(selectedTrip.id);
+                          }}
                         >
-                          <MdAdd size={18} />
-                          Dodaj pozycję
-                        </button>
-                      </form>
+                          <input
+                            value={newChecklistItem}
+                            onChange={(event) =>
+                              setNewChecklistItem(event.target.value)
+                            }
+                            placeholder="Np. kupić krem z filtrem"
+                            aria-label="Nowa rzecz do przygotowania"
+                            className="min-w-0 flex-1 rounded-xl border border-[#DCE4D9] bg-white px-3 py-3 text-sm outline-none transition focus:border-[#287969] focus:ring-2 focus:ring-[#287969]/10"
+                          />
+
+                          <button
+                            type="submit"
+                            disabled={
+                              !newChecklistItem.trim() ||
+                              checklistLoading === "add"
+                            }
+                            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <MdAdd size={18} />
+                            Dodaj pozycję
+                          </button>
+                        </form>
+                      )}
                     </>
                   );
                 })()}
               </div>
-            </div>
-
-            {/* Stopka */}
-            <div className="flex shrink-0 justify-end border-t border-[#E9EDE6] bg-[#FEFEFA] px-5 py-3 sm:px-7">
-              <button
-                type="button"
-                onClick={() => setSelectedTripId(null)}
-                className="cursor-pointer rounded-xl border border-[#DCE4D9] px-4 py-2.5 text-sm font-bold text-[#263C35] transition hover:bg-[#F5F6EE]"
-              >
-                Zamknij
-              </button>
             </div>
           </section>
         </div>
@@ -772,42 +923,13 @@ export default function TravelPageContent() {
 
       <section className="mt-20 space-y-6 px-4 sm:px-6 lg:px-10">
         {/* Nagłówek */}
-        <h2 className="text-3xl font-extrabold tracking-tight text-[var(--greenText)] sm:text-4xl text-center uppercase">
+        <h2 className="text-2xl md:text-3xl min-w-[1600px]:text-4xl font-extrabold tracking-tight text-[var(--greenText)]  text-center uppercase">
           Lista podróży
         </h2>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-[var(--greenText)]">
-              Dziennik rodzinnych przygód
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[#313833] sm:text-lg">
-              Odkrywaj nowe miejsca, planuj kolejne wyjazdy i wracaj do
-              najpiękniejszych wspomnień.
-            </p>
-          </div>
-
-          <label className="flex w-full items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] px-4 py-3 transition focus-within:border-[#287969] focus-within:ring-2 focus-within:ring-[#287969]/10 lg:max-w-sm">
-            <MdSearch size={21} className="shrink-0 text-[#839087]" />
-
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Szukaj podróży..."
-              className="w-full bg-transparent text-sm text-[#263C35] outline-none placeholder:text-[#9AA59B]"
-            />
-
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                aria-label="Wyczyść wyszukiwanie"
-                className="cursor-pointer rounded-lg p-1 text-[#839087] transition hover:bg-[#E4EBD5] hover:text-[#19483D]"
-              >
-                <MdClose size={18} />
-              </button>
-            )}
-          </label>
-        </div>
+        <p className="mt-2 mb-10 text-center text-sm leading-6 text-[#313833] sm:text-lg">
+          Odkrywaj nowe miejsca, planuj kolejne wyjazdy i wracaj do
+          najpiękniejszych wspomnień.
+        </p>
 
         {/* Filtry */}
         <div className="flex flex-col gap-3 border-b border-[#DCE4D9] pb-5 sm:flex-row sm:items-center sm:justify-between">
@@ -829,7 +951,7 @@ export default function TravelPageContent() {
                   aria-pressed={active}
                   className={`cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200 ${
                     active
-                      ? "bg-[#287969] text-white shadow-sm"
+                      ? "bg-[var(--greenText)] text-white shadow-sm"
                       : "border border-[#DCE4D9] bg-[#FEFEFA] text-[#65746A] hover:border-[#B8CFC0] hover:bg-[#E4EBD5]"
                   }`}
                 >
@@ -838,28 +960,60 @@ export default function TravelPageContent() {
               );
             })}
           </div>
+          <div className="flex flex-col xl:flex-row items-center gap-4 mt-10 xl:mt-0">
+            {canManageTrips && (
+              <button
+                type="button"
+                onClick={openCreate}
+                className="w-[180px] md:w-[220px] mx-auto flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--greenText)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--greenText)]/90"
+              >
+                <MdAdd size={20} />
+                Dodaj podróż
+              </button>
+            )}
 
-          <p className="text-sm uppercase font-medium text-[#353b37]">
-            Znaleziono{" "}
-            <span className="font-bold text-[#263C35]">
-              {filteredTrips.length}
-            </span>{" "}
-            {filteredTrips.length === 1
-              ? "podróż"
-              : filteredTrips.length >= 2 && filteredTrips.length <= 4
-                ? "podróże"
-                : "podróży"}
-          </p>
+            <label className="flex w-full items-center gap-3 rounded-2xl border border-[#DCE4D9] bg-[#FEFEFA] px-4 py-3 transition focus-within:border-[#287969] focus-within:ring-2 focus-within:ring-[#287969]/10 lg:max-w-sm">
+              <MdSearch size={21} className="shrink-0 text-[#839087]" />
+
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Szukaj podróży..."
+                className="w-full bg-transparent text-sm text-[#263C35] outline-none placeholder:text-[#9AA59B]"
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Wyczyść wyszukiwanie"
+                  className="cursor-pointer rounded-lg p-1 text-[#839087] transition hover:bg-[#E4EBD5] hover:text-[#19483D]"
+                >
+                  <MdClose size={18} />
+                </button>
+              )}
+            </label>
+          </div>
         </div>
-
+        <p className="text-sm text-right uppercase font-medium text-[#353b37]">
+          Znaleziono{" "}
+          <span className="font-bold text-[#263C35]">
+            {filteredTrips.length}
+          </span>{" "}
+          {filteredTrips.length === 1
+            ? "podróż"
+            : filteredTrips.length >= 2 && filteredTrips.length <= 4
+              ? "podróże"
+              : "podróży"}
+        </p>
         {/* Lista kart */}
         {filteredTrips.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-[#C9D8CA] bg-[#F5F6EE] px-6 py-14 text-center">
+          <div className="rounded-3xl border border-dashed border-[#C9D8CA] bg-[#F5F6EE] px-6 py-10 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E2F0EB]">
-              <MdTravelExplore size={32} className="text-[#287969]" />
+              <MdTravelExplore size={32} className="text-[var(--greenText)]" />
             </div>
 
-            <h3 className="mt-5 text-lg font-extrabold text-[#263C35]">
+            <h3 className="mt-5 text-lg font-extrabold text-[var(--greenText)]">
               Nie znaleziono podróży
             </h3>
 
@@ -916,7 +1070,10 @@ export default function TravelPageContent() {
                       />
                     ) : (
                       <div className="flex h-52 items-center justify-center bg-gradient-to-br from-[#E2F0EB] via-[#EDF1E7] to-[#D7E6D8] transition duration-500 group-hover:scale-[1.02]">
-                        <MdTravelExplore size={48} className="text-[#287969]" />
+                        <MdTravelExplore
+                          size={48}
+                          className="text-[var(--greenText)]"
+                        />
                       </div>
                     )}
 
@@ -925,7 +1082,7 @@ export default function TravelPageContent() {
                     <span
                       className={`absolute left-4 top-4 rounded-full px-3 py-1.5 text-xs font-bold backdrop-blur-md ${
                         trip.status === "COMPLETED"
-                          ? "bg-[#E2F0EB]/95 text-[#19483D]"
+                          ? "bg-[#E2F0EB]/95 text-[var(--greenText)]"
                           : "bg-[#FFF1D8]/95 text-[#79551E]"
                       }`}
                     >
@@ -961,14 +1118,14 @@ export default function TravelPageContent() {
                             Przygotowania
                           </span>
 
-                          <span className="text-xs font-extrabold text-[#287969]">
+                          <span className="text-xs font-extrabold text-[var(--greenText)]">
                             {checklistCompleted}/{checklistTotal}
                           </span>
                         </div>
 
                         <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[#DCE4D9]">
                           <div
-                            className="h-full rounded-full bg-[#287969] transition-all"
+                            className="h-full rounded-full bg-[var(--greenText)] transition-all"
                             style={{ width: `${checklistProgress}%` }}
                           />
                         </div>
@@ -979,7 +1136,10 @@ export default function TravelPageContent() {
                     <div className="flex items-center justify-between gap-3 border-t border-[#E9EDE6] pt-4">
                       <div className="flex min-w-0 items-center gap-2 text-sm text-[#65746A]">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E2F0EB]">
-                          <FaMapPin size={16} className="text-[#287969]" />
+                          <FaMapPin
+                            size={16}
+                            className="text-[var(--greenText)]"
+                          />
                         </span>
 
                         <span className="font-semibold">
@@ -995,7 +1155,7 @@ export default function TravelPageContent() {
                       <button
                         type="button"
                         onClick={() => setSelectedTripId(trip.id)}
-                        className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-[#287969] transition hover:bg-[#E2F0EB] hover:text-[#19483D]"
+                        className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-[var(--greenText)] transition hover:bg-[#E2F0EB] hover:text-[#19483D]"
                       >
                         Szczegóły
                         <MdArrowOutward
@@ -1133,7 +1293,7 @@ export default function TravelPageContent() {
                     className="mb-3 h-40 w-full rounded-xl object-cover"
                   />
                 )}
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#B8C9BB] bg-[#F5F6EE] px-3 py-4 text-sm font-bold text-[#287969] hover:bg-[#E2F0EB]">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#B8C9BB] bg-[#F5F6EE] px-3 py-4 text-sm font-bold text-[var(--greenText)] hover:bg-[#E2F0EB]">
                   <MdImage size={20} />
                   {form.coverImage ? "Zmień zdjęcie" : "Wybierz zdjęcie"}
                   <input
@@ -1166,7 +1326,7 @@ export default function TravelPageContent() {
                     disabled={
                       placeSearchLoading || placeQuery.trim().length < 2
                     }
-                    className="shrink-0 rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D] disabled:opacity-50"
+                    className="shrink-0 rounded-xl bg-[var(--greenText)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D] disabled:opacity-50"
                   >
                     {placeSearchLoading ? "Szukam..." : "Szukaj"}
                   </button>
@@ -1176,12 +1336,6 @@ export default function TravelPageContent() {
                   Wpisz miasto, atrakcję lub adres, a następnie wybierz właściwy
                   wynik.
                 </p>
-
-                {placeSearchError && (
-                  <p role="alert" className="mt-2 text-sm text-red-600">
-                    {placeSearchError}
-                  </p>
-                )}
 
                 {placeResults.length > 0 && (
                   <div className="mt-3 space-y-2">
@@ -1198,7 +1352,7 @@ export default function TravelPageContent() {
                         <span className="mt-1 block text-xs text-[#839087]">
                           {place.displayName}
                         </span>
-                        <span className="mt-2 block text-xs font-bold text-[#287969]">
+                        <span className="mt-2 block text-xs font-bold text-[var(--greenText)]">
                           + Dodaj do podróży
                         </span>
                       </button>
@@ -1283,12 +1437,6 @@ export default function TravelPageContent() {
                   </a>
                 </p>
               </div>
-
-              {formError && (
-                <p role="alert" className="text-sm font-semibold text-red-600">
-                  {formError}
-                </p>
-              )}
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
@@ -1302,12 +1450,80 @@ export default function TravelPageContent() {
               <button
                 type="button"
                 onClick={saveTrip}
-                className="rounded-xl bg-[#287969] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D]"
+                disabled={isSaving}
+                className="cursor-pointer rounded-xl bg-[var(--greenText)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#19483D] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {editingId ? "Zapisz zmiany" : "Dodaj podróż"}
+                {isSaving
+                  ? "Zapisywanie..."
+                  : editingId
+                    ? "Zapisz zmiany"
+                    : "Dodaj podróż"}
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {tripToDelete && (
+        <div
+          className="fixed inset-0 z-[1200] flex items-center justify-center bg-[#17251F]/60 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !deletingTripId) {
+              setTripToDelete(null);
+            }
+          }}
+        >
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-trip-title"
+            className="w-full max-w-md rounded-3xl border border-[#DCE4D9] bg-[#FEFEFA] p-6 shadow-2xl"
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              <MdDeleteOutline size={30} />
+            </div>
+
+            <h2
+              id="delete-trip-title"
+              className="mt-5 text-xl font-extrabold text-[#263C35]"
+            >
+              Usunąć podróż?
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-[#65746A]">
+              Czy na pewno chcesz usunąć podróż{" "}
+              <strong className="text-[#263C35]">{tripToDelete.title}</strong>?
+            </p>
+
+            <div className="mt-4 rounded-xl bg-red-50 p-3">
+              <p className="text-sm leading-6 text-red-700">
+                Ta operacja jest nieodwracalna. Zostaną usunięte również
+                zapisane miejsca, lista przygotowań oraz zdjęcie okładkowe
+                podróży.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={!!deletingTripId}
+                onClick={() => {
+                  setTripToDelete(null);
+                }}
+                className="cursor-pointer rounded-xl border border-[#DCE4D9] px-4 py-3 text-sm font-bold text-[#65746A] transition hover:bg-[#F5F6EE] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Anuluj
+              </button>
+
+              <button
+                type="button"
+                disabled={!!deletingTripId}
+                onClick={() => deleteTrip(tripToDelete.id)}
+                className="cursor-pointer rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deletingTripId ? "Usuwanie..." : "Tak, usuń podróż"}
+              </button>
+            </div>
+          </section>
         </div>
       )}
     </div>
